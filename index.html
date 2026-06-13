@@ -619,6 +619,12 @@ function update() {
     const uPct=pct(uLIQ,uDET);
     const badge='<span class="exec-badge '+badgeCls(uPct)+'">'+uPct+'% liq.</span>';
     const ugrMatch=!searchQ||lbl.toLowerCase().includes(searchQ);
+    const childNDMatch=searchQ?(r.children||[]).some(nd=>rowMatchesND(nd)&&!isZero(nd)&&(
+      nd.label.toLowerCase().includes(searchQ)||(nd.children||[]).some(ndd=>!isZero(ndd)&&(
+        ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
+      ))
+    )):false;
+    const showUGR=ugrMatch||childNDMatch||exp;
     const trU=document.createElement('tr');
     trU.className='ugr-row';
     trU.innerHTML='<td><span class="expand-btn" onclick="toggle(\''+uid+'\',this)">'+(exp?'⊟':'⊞')+'</span>'+lbl+badge+'</td>'
@@ -627,34 +633,38 @@ function update() {
       +'<td class="td-liq">'+fmt(uLIQ)+'</td>'
       +'<td class="td-pag">'+fmt(uPAG)+'</td>'
       +'<td>'+fmt(uDISP)+'</td>';
-    if(!ugrMatch&&!exp) trU.classList.add('tr-hidden');
+    if(!showUGR) trU.classList.add('tr-hidden');
     tbody.appendChild(trU);
-    if(!exp) return;
+    if(!exp&&!childNDMatch) return;
 
     (r.children||[]).forEach(nd=>{
       if(!rowMatchesND(nd)||isZero(nd)) return;
       const ndMatch=!searchQ||nd.label.toLowerCase().includes(searchQ)||ugrMatch;
+      const ndChildMatch=searchQ&&!ndMatch?(nd.children||[]).some(ndd=>!isZero(ndd)&&(
+        ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
+      )):false;
       const ndid=uid+'_'+nd.label.replace(/\W/g,'_').slice(0,25);
       const ndExp=!!expanded[ndid];
       const trN=document.createElement('tr');
       trN.className='nd-row';
-      if(!ndMatch&&!ndExp) trN.classList.add('tr-hidden');
+      if(!ndMatch&&!ndChildMatch&&!ndExp) trN.classList.add('tr-hidden');
       trN.innerHTML='<td class="indent1"><span class="expand-btn" onclick="toggle(\''+ndid+'\',this)">'+(ndExp?'⊟':'⊞')+'</span>'+nd.label+'</td>'
         +'<td class="td-det">'+fmt(nd.DET)+'</td><td class="td-emp">'+fmt(nd.EMP)+'</td>'
         +'<td class="td-liq">'+fmt(nd.LIQ)+'</td><td class="td-pag">'+fmt(nd.PAG)+'</td>'
         +'<td>'+fmt(nd.DISP)+'</td>';
       tbody.appendChild(trN);
-      if(!ndExp) return;
+      if(!ndExp&&!ndChildMatch&&!ndMatch) return;
 
       (nd.children||[]).forEach(ndd=>{
         if(isZero(ndd)) return;
         const nddMatch=!searchQ||ndd.label.toLowerCase().includes(searchQ)||ndMatch;
+        const nddPiMatch=searchQ&&!nddMatch?(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ)):false;
         const nddid=ndid+'_'+ndd.label.replace(/\W/g,'_').slice(0,20);
         const nddExp=!!expanded[nddid];
         const hasKids=(ndd.children||[]).length>0;
         const trD=document.createElement('tr');
         trD.className='ndd-row';
-        if(!nddMatch&&!nddExp) trD.classList.add('tr-hidden');
+        if(!nddMatch&&!nddPiMatch&&!nddExp) trD.classList.add('tr-hidden');
         trD.innerHTML='<td class="indent2">'
           +(hasKids?'<span class="expand-btn" onclick="toggle(\''+nddid+'\',this)">'+(nddExp?'⊟':'⊞')+'</span>':'<span style="display:inline-block;width:21px"></span>')
           +ndd.label+'</td>'
@@ -662,7 +672,7 @@ function update() {
           +'<td class="td-liq">'+fmt(ndd.LIQ)+'</td><td class="td-pag">'+fmt(ndd.PAG)+'</td>'
           +'<td>'+fmt(ndd.DISP)+'</td>';
         tbody.appendChild(trD);
-        if(nddExp&&hasKids) {
+        if((nddExp||nddPiMatch||nddMatch)&&hasKids) {
           (ndd.children||[]).forEach(pi=>{
             if(isZero(pi)) return;
             const piMatch=!searchQ||pi.label.toLowerCase().includes(searchQ)||nddMatch;
