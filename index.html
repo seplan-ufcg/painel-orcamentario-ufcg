@@ -1,121 +1,170 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Monitoramento da Execução Orçamentária - UFCG</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1f2e;color:#d0d7e8;font-size:13px}
+:root{
+  --bg:#1a1f2e;--bg2:#0d1526;--bg3:#1e2740;--border:#2a3555;
+  --text:#d0d7e8;--text2:#8a96b8;--text3:#4b5675;
+  --accent:#4a8bc4;--green:#2ea85a;
+  --c-det:#5c8fe8;--c-emp:#d4a017;--c-liq:#c47a35;--c-pag:#3a9e5f;
+  --bar-det:#003D7C;--bar-emp:#d4a017;--bar-liq:#c47a35;--bar-pag:#2d8f52;
+  --ugr-bg:#1e2740;--ugr-text:#c8d0e8;
+}
+[data-theme=light]{
+  --bg:#f0f4f8;--bg2:#003D7C;--bg3:#e2eaf3;--border:#c5d3e0;
+  --text:#1a2740;--text2:#4a5a7a;--text3:#8a96b8;
+  --accent:#003D7C;--green:#00843D;
+  --c-det:#003D7C;--c-emp:#8a5f00;--c-liq:#8a4a1a;--c-pag:#00843D;
+  --bar-det:#003D7C;--bar-emp:#d4a017;--bar-liq:#c47a35;--bar-pag:#2d8f52;
+  --ugr-bg:#dce8f5;--ugr-text:#003D7C;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
 
 /* HEADER */
-.hdr{background:#111827;padding:10px 20px;display:flex;align-items:center;gap:12px;border-bottom:2px solid #2a3555}
+.hdr{background:var(--bg2);padding:10px 20px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--border)}
 .hdr img{width:54px;height:54px;object-fit:contain}
-.hdr-logo-txt{width:54px;height:54px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:white;flex-shrink:0}
+.hdr-logo-txt{width:54px;height:54px;background:#003D7C;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:white;flex-shrink:0}
 .hdr h1{font-size:17px;font-weight:700;color:#e8edf8;letter-spacing:.3px}
+[data-theme=light] .hdr h1{color:white}
 .hdr p{font-size:10px;color:#6b7a99;margin-top:2px}
+[data-theme=light] .hdr p{color:#b8d0f0}
+.hdr-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-shrink:0}
+.btn-theme{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:white;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:11px}
+.btn-theme:hover{background:rgba(255,255,255,.22)}
 
 /* LAYOUT */
-.body{display:flex;height:calc(100vh - 72px)}
+.body{display:flex;height:calc(100vh - 80px)}
 
 /* SIDEBAR */
-.sidebar{width:265px;flex-shrink:0;background:#111827;border-right:1px solid #2a3555;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
-.sb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#4a90d9;margin-bottom:7px}
-.search-box{display:flex;align-items:center;gap:6px;background:#1e2740;border:1px solid #2a3555;border-radius:6px;padding:5px 9px}
+.sidebar{width:265px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+[data-theme=light] .sidebar{background:#f8fafc}
+.sb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:7px}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 9px}
 .search-box svg{flex-shrink:0}
-.search-box input{background:none;border:none;outline:none;color:#d0d7e8;font-size:12px;width:100%}
-.search-box input::placeholder{color:#4b5675}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:12px;width:100%}
+.search-box input::placeholder{color:var(--text3)}
 .ugr-list{list-style:none;display:flex;flex-direction:column;gap:1px;max-height:260px;overflow-y:auto;margin-top:7px}
-.ugr-list li{display:flex;align-items:flex-start;gap:7px;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:11.5px;color:#8a96b8;line-height:1.3}
-.ugr-list li:hover{background:#1e2740;color:#d0d7e8}
-.ugr-list li.active{background:#1d3a6e;color:#93c5fd;font-weight:600}
-.ugr-list li input[type=radio]{accent-color:#4a90d9;margin-top:3px;flex-shrink:0}
-.nd-list{list-style:none;display:flex;flex-direction:column;gap:1px;max-height:220px;overflow-y:auto;margin-top:7px}
-.nd-list li{display:flex;align-items:flex-start;gap:6px;padding:4px 5px;border-radius:4px;cursor:pointer;font-size:11px;color:#8a96b8;line-height:1.3}
-.nd-list li:hover{background:#1e2740;color:#d0d7e8}
-.nd-list li.active{background:#1d3a6e;color:#93c5fd;font-weight:600}
-.nd-list li input[type=checkbox]{accent-color:#4a90d9;margin-top:2px;flex-shrink:0}
-.btn-limpar{width:100%;margin-top:6px;padding:5px;background:#1e2740;border:1px solid #2a3555;color:#8a96b8;border-radius:5px;cursor:pointer;font-size:11px}
-.btn-limpar:hover{color:#d0d7e8;background:#243050}
+.ugr-list li{display:flex;align-items:flex-start;gap:7px;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:11.5px;color:var(--text2);line-height:1.3}
+.ugr-list li:hover{background:var(--bg3);color:var(--text)}
+.ugr-list li.active{background:var(--ugr-bg);color:var(--accent);font-weight:600}
+.ugr-list li input[type=radio]{accent-color:var(--accent);margin-top:3px;flex-shrink:0}
+.nd-list{list-style:none;display:flex;flex-direction:column;gap:1px;max-height:180px;overflow-y:auto;margin-top:7px}
+.nd-list li{display:flex;align-items:flex-start;gap:6px;padding:4px 5px;border-radius:4px;cursor:pointer;font-size:11px;color:var(--text2);line-height:1.3}
+.nd-list li:hover{background:var(--bg3);color:var(--text)}
+.nd-list li.active{background:var(--ugr-bg);color:var(--accent);font-weight:600}
+.nd-list li input[type=checkbox]{accent-color:var(--accent);margin-top:2px;flex-shrink:0}
+.btn-limpar{width:100%;margin-top:6px;padding:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:5px;cursor:pointer;font-size:11px}
+.btn-limpar:hover{color:var(--text)}
 
 /* MAIN */
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 
-/* ANO BAR */
-.ano-bar{background:#111827;border-bottom:1px solid #2a3555;padding:8px 24px;display:flex;align-items:center;justify-content:flex-end;gap:10px}
-.ano-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#4a90d9}
-.ano-select{background:#1e2740;border:1px solid #2a3555;color:#d0d7e8;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+/* ANO BAR + TOOLBAR */
+.ano-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+[data-theme=light] .ano-bar{background:white}
+.ano-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent)}
+.ano-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer}
+.toolbar{margin-left:auto;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.tb-btn{display:flex;align-items:center;gap:4px;padding:4px 9px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);border-radius:5px;cursor:pointer;font-size:11px;white-space:nowrap}
+.tb-btn:hover{color:var(--text);border-color:var(--accent)}
+.tbl-search{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 8px}
+.tbl-search input{background:none;border:none;outline:none;color:var(--text);font-size:11px;width:110px}
+.tbl-search input::placeholder{color:var(--text3)}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 18px 8px;border-bottom:1px solid var(--border)}
+.kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--kpi-c)}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px}
+.kpi-val{font-size:15px;font-weight:700;color:var(--kpi-c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.kc-det{--kpi-c:var(--c-det)}
+.kc-emp{--kpi-c:var(--c-emp)}
+.kc-liq{--kpi-c:var(--c-liq)}
+.kc-disp{--kpi-c:var(--green)}
 
 /* EXECUCAO */
-.exec-section{padding:18px 28px 12px;border-bottom:1px solid #2a3555}
-.exec-title{font-size:13px;font-weight:700;text-transform:uppercase;color:#4a90d9;letter-spacing:.6px;text-align:center;margin-bottom:14px}
-.exec-pct-top{text-align:center;font-size:13px;font-weight:700;color:#d0d7e8;margin-bottom:5px}
-.bars{display:flex;flex-direction:column;gap:7px}
+.exec-section{padding:10px 20px 8px;border-bottom:1px solid var(--border)}
+.exec-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--accent);letter-spacing:.6px;margin-bottom:9px}
+.bars{display:flex;flex-direction:column;gap:6px}
 .bar-row{display:grid;grid-template-columns:100px 1fr;align-items:center;gap:10px}
-.bar-label{font-size:11px;font-weight:700;text-transform:uppercase;color:#8a96b8;text-align:right}
-.bar-track{height:34px;background:#1e2740;border-radius:4px;position:relative;overflow:hidden;min-width:40px}
-.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;white-space:nowrap;padding:0 12px;transition:width .5s ease;min-width:180px}
-.exec-pct-bot{text-align:center;font-size:13px;font-weight:700;color:#d0d7e8;margin-top:8px}
+.bar-label{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);text-align:right}
+.bar-track{height:30px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;white-space:nowrap;padding:0 12px;transition:width .5s ease;min-width:160px}
 
 /* TABLE */
-.tbl-section{padding:14px 20px;flex:1}
-.tbl-title{font-size:12px;font-weight:700;text-transform:uppercase;color:#4a90d9;letter-spacing:.6px;margin-bottom:10px}
+.tbl-section{padding:10px 16px;flex:1}
+.tbl-title{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--accent);letter-spacing:.6px;margin-bottom:8px}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:11.5px}
 thead th{
-  background:#111827;color:#6b7a99;padding:7px 10px;text-align:right;
+  background:var(--bg2);color:var(--text3);padding:7px 10px;text-align:right;
   font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
-  white-space:nowrap;border-bottom:1px solid #2a3555;position:sticky;top:0;z-index:1
+  white-space:nowrap;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1
 }
+[data-theme=light] thead th{background:#e2eaf3}
 thead th:first-child{text-align:left;width:280px}
-thead th.th-det{color:#5c8fe8}
-thead th.th-emp{color:#d4a017}
-thead th.th-liq{color:#c47a35}
-thead th.th-pag{color:#3a9e5f}
+thead th.th-det{color:var(--c-det)}
+thead th.th-emp{color:var(--c-emp)}
+thead th.th-liq{color:var(--c-liq)}
+thead th.th-pag{color:var(--c-pag)}
 
-tbody td{padding:6px 10px;border-bottom:1px solid #1e2740;text-align:right;white-space:nowrap;color:#8a96b8}
+tbody td{padding:6px 10px;border-bottom:1px solid var(--bg3);text-align:right;white-space:nowrap;color:var(--text2)}
+[data-theme=light] tbody td{border-bottom:1px solid var(--border)}
 tbody td:first-child{text-align:left}
-tbody td.td-det{color:#5c8fe8;font-weight:500}
-tbody td.td-emp{color:#d4a017;font-weight:500}
-tbody td.td-liq{color:#c47a35;font-weight:500}
-tbody td.td-pag{color:#3a9e5f;font-weight:500}
+tbody td.td-det{color:var(--c-det);font-weight:500}
+tbody td.td-emp{color:var(--c-emp);font-weight:500}
+tbody td.td-liq{color:var(--c-liq);font-weight:500}
+tbody td.td-pag{color:var(--c-pag);font-weight:500}
 
-tbody tr.ugr-row{background:#1a2035}
-tbody tr.ugr-row td{background:#1e2740;font-weight:700}
-tbody tr.ugr-row td:first-child{color:#c8d0e8}
-tbody tr.ugr-row td.td-det{color:#7aabf5}
-tbody tr.ugr-row td.td-emp{color:#e6bb30}
-tbody tr.ugr-row td.td-liq{color:#d4894a}
-tbody tr.ugr-row td.td-pag{color:#4fc077}
-tbody tr.ugr-row:hover td{background:#243050}
-tbody tr.nd-row:hover td{background:#1a2035}
+tbody tr.ugr-row td{background:var(--ugr-bg);font-weight:700}
+tbody tr.ugr-row td:first-child{color:var(--ugr-text)}
+tbody tr.ugr-row td.td-det{color:var(--c-det)}
+tbody tr.ugr-row td.td-emp{color:var(--c-emp)}
+tbody tr.ugr-row td.td-liq{color:var(--c-liq)}
+tbody tr.ugr-row td.td-pag{color:var(--c-pag)}
+tbody tr.ugr-row:hover td{filter:brightness(1.08)}
+tbody tr.nd-row:hover td,tbody tr.ndd-row:hover td,tbody tr.pi-row:hover td{background:var(--bg3)}
+[data-theme=light] tbody tr.nd-row:hover td,[data-theme=light] tbody tr.ndd-row:hover td,[data-theme=light] tbody tr.pi-row:hover td{background:#e2eaf3}
 tbody tr.ndd-row td{font-size:11px}
-tbody tr.ndd-row:hover td{background:#161d30}
-tbody tr.pi-row td{font-size:10.5px;color:#556080}
-tbody tr.pi-row td:first-child{color:#556080}
-tbody tr.pi-row:hover td{background:#141a2b}
-tbody tr.total-row td{background:#111827;font-weight:700;color:#d0d7e8;border-top:2px solid #2a3555}
-tbody tr.total-row td.td-det{color:#7aabf5}
-tbody tr.total-row td.td-emp{color:#e6bb30}
-tbody tr.total-row td.td-liq{color:#d4894a}
-tbody tr.total-row td.td-pag{color:#4fc077}
+tbody tr.pi-row td{font-size:10.5px;color:var(--text3)}
+tbody tr.total-row td{background:var(--bg2);font-weight:700;color:var(--text);border-top:2px solid var(--border)}
+[data-theme=light] tbody tr.total-row td{background:#dce8f5}
+tbody tr.total-row td.td-det{color:var(--c-det)}
+tbody tr.total-row td.td-emp{color:var(--c-emp)}
+tbody tr.total-row td.td-liq{color:var(--c-liq)}
+tbody tr.total-row td.td-pag{color:var(--c-pag)}
+.tr-hidden{display:none}
 
 .expand-btn{
   cursor:pointer;user-select:none;display:inline-flex;align-items:center;
-  justify-content:center;width:16px;height:16px;border:1px solid #2a3555;
-  border-radius:3px;margin-right:5px;font-size:10px;color:#4a90d9;
-  flex-shrink:0;background:#1e2740;vertical-align:middle
+  justify-content:center;width:16px;height:16px;border:1px solid var(--border);
+  border-radius:3px;margin-right:5px;font-size:10px;color:var(--accent);
+  flex-shrink:0;background:var(--bg3);vertical-align:middle
 }
 .indent1{padding-left:24px}
 .indent2{padding-left:44px}
 .indent3{padding-left:64px}
 
-.footer{background:#111827;border-top:1px solid #2a3555;font-size:10px;color:#4b5675;padding:6px 20px;text-align:center}
-.footer span{color:#4a90d9;font-weight:600}
+.exec-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:7px;vertical-align:middle}
+.bg-g{background:rgba(46,168,90,.15);color:#2ea85a}
+.bg-a{background:rgba(212,160,23,.15);color:#d4a017}
+.bg-r{background:rgba(196,122,53,.18);color:#c47a35}
+[data-theme=light] .bg-g{background:rgba(0,132,61,.12);color:#00843D}
+[data-theme=light] .bg-a{background:rgba(138,95,0,.12);color:#8a6000}
+[data-theme=light] .bg-r{background:rgba(138,74,26,.12);color:#8a4a1a}
+
+.footer{background:var(--bg2);border-top:1px solid var(--border);font-size:10px;color:var(--text3);padding:6px 20px;text-align:center}
+[data-theme=light] .footer{background:#e2eaf3}
+.footer span{color:var(--accent);font-weight:600}
 
 ::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:#111827}
-::-webkit-scrollbar-thumb{background:#2a3555;border-radius:3px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
@@ -124,68 +173,110 @@ tbody tr.total-row td.td-pag{color:#4fc077}
   <div>
     <h1>MONITORAMENTO DA EXECUÇÃO ORÇAMENTÁRIA - UFCG</h1>
     <p>SEPLAN &middot; Dados extraídos do Tesouro Gerencial / SIAFI &middot; Atualizado em: <span id="dataAtual">—</span></p>
-    <p style="margin-top:3px;color:#4a5a7a;font-size:10px;">Escopo: Reitoria &middot; Pró-Reitorias &middot; Secretarias &middot; Prefeitura Universitária</p>
+    <p style="margin-top:3px;font-size:10px;">Escopo: Reitoria &middot; Pró-Reitorias &middot; Secretarias &middot; Prefeitura Universitária</p>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">☀ Modo Claro</button>
   </div>
 </div>
 
 <div class="body">
   <!-- SIDEBAR -->
   <div class="sidebar">
-
-    <!-- Filtro UGR -->
     <div>
       <div class="sb-title">Unidade Gestora Responsável</div>
       <div class="search-box">
-        <svg width="12" height="12" fill="none" stroke="#4b5675" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <svg width="12" height="12" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="Pesquisar" id="ugrSearch" oninput="filterUGR(this.value)">
       </div>
       <ul class="ugr-list" id="ugrList"></ul>
     </div>
-
-    <!-- Filtro ND -->
     <div>
       <div class="sb-title">Natureza de Despesa</div>
       <div class="search-box">
-        <svg width="12" height="12" fill="none" stroke="#4b5675" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <svg width="12" height="12" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="Pesquisar" id="ndSearch" oninput="filterND(this.value)">
       </div>
       <ul class="nd-list" id="ndList"></ul>
       <button class="btn-limpar" onclick="clearND()">Limpar seleção ND</button>
     </div>
-
   </div>
 
   <!-- MAIN -->
   <div class="main">
-    <!-- ANO -->
+    <!-- ANO BAR + TOOLBAR -->
     <div class="ano-bar">
       <span class="ano-label">ANO</span>
       <select class="ano-select" id="anoSelect" onchange="update()"></select>
+      <div class="toolbar">
+        <div class="tbl-search">
+          <svg width="11" height="11" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Buscar na tabela" id="tblSearch" oninput="update()">
+        </div>
+        <button class="tb-btn" onclick="expandAll()">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          Expandir tudo
+        </button>
+        <button class="tb-btn" onclick="collapseAll()">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+          Recolher tudo
+        </button>
+        <button class="tb-btn" onclick="exportCSV()">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+        <button class="tb-btn" id="copyBtn" onclick="copyLink(this)">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Copiar link
+        </button>
+      </div>
     </div>
 
-    <!-- EXECUÇÃO -->
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card kc-det">
+        <div class="kpi-lbl">Dotado</div>
+        <div class="kpi-val" id="kDET">—</div>
+        <div class="kpi-sub">100% do orçamento</div>
+      </div>
+      <div class="kpi-card kc-emp">
+        <div class="kpi-lbl">Empenhado</div>
+        <div class="kpi-val" id="kEMP">—</div>
+        <div class="kpi-sub" id="kEMPs">—</div>
+      </div>
+      <div class="kpi-card kc-liq">
+        <div class="kpi-lbl">Liquidado</div>
+        <div class="kpi-val" id="kLIQ">—</div>
+        <div class="kpi-sub" id="kLIQs">—</div>
+      </div>
+      <div class="kpi-card kc-disp">
+        <div class="kpi-lbl">Saldo Disponível</div>
+        <div class="kpi-val" id="kDISP">—</div>
+        <div class="kpi-sub">DET − LIQ</div>
+      </div>
+    </div>
+
+    <!-- BARRAS DE EXECUÇÃO -->
     <div class="exec-section">
       <div class="exec-title">Execução Orçamentária</div>
-      <div class="exec-pct-top">100%</div>
       <div class="bars">
         <div class="bar-row">
           <div class="bar-label">Detalhado</div>
-          <div class="bar-track"><div class="bar-fill" id="bDET" style="background:#1d4ed8;width:100%">—</div></div>
+          <div class="bar-track"><div class="bar-fill" id="bDET" style="background:var(--bar-det);width:100%">—</div></div>
         </div>
         <div class="bar-row">
           <div class="bar-label">Empenhado</div>
-          <div class="bar-track"><div class="bar-fill" id="bEMP" style="background:#d4a017">—</div></div>
+          <div class="bar-track"><div class="bar-fill" id="bEMP" style="background:var(--bar-emp)">—</div></div>
         </div>
         <div class="bar-row">
           <div class="bar-label">Liquidado</div>
-          <div class="bar-track"><div class="bar-fill" id="bLIQ" style="background:#c47a35">—</div></div>
+          <div class="bar-track"><div class="bar-fill" id="bLIQ" style="background:var(--bar-liq)">—</div></div>
         </div>
         <div class="bar-row">
           <div class="bar-label">Pagos</div>
-          <div class="bar-track"><div class="bar-fill" id="bPAG" style="background:#2d8f52">—</div></div>
+          <div class="bar-track"><div class="bar-fill" id="bPAG" style="background:var(--bar-pag)">—</div></div>
         </div>
       </div>
-      <div class="exec-pct-bot" id="pctBot">—</div>
     </div>
 
     <!-- TABLE -->
@@ -218,13 +309,20 @@ tbody tr.total-row td.td-pag{color:#4fc077}
 <script>
 const D = {"anos": [2020, 2021, 2022, 2023, 2024, 2025, 2026], "ugrs": ["PREFEITURA UNIVERSITARIA DA UFCG", "PRO-REITORIA DE ASSUNTOS COMUNITARIOS DA UFCG", "PRO-REITORIA DE ENSINO DA UFCG", "PRO-REITORIA DE EXTENSAO DA UFCG", "PRO-REITORIA DE GESTAO ADM-FINANCEIRA DA UFCG", "PRO-REITORIA DE POS-GRADUACAO DA UFCG", "REITORIA/GABINETE DA UFCG", "SECRETARIA DE PLANEJ. E ORCAMENTO DA UFCG", "SECRETARIA DE PROJETOS ESTRATEGICOS DA UFCG", "SECRETARIA DE RECURSOS HUMANOS DA UFCG", "SECRETARIA DOS ORGAOS DEL. SUPERIORES DA UFCG"], "ugr_meta": {"PREFEITURA UNIVERSITARIA DA UFCG": {"nome": "Prefeitura Universitária", "sigla": "PU"}, "PRO-REITORIA DE ASSUNTOS COMUNITARIOS DA UFCG": {"nome": "Pró-reitoria de Assuntos Comunitários", "sigla": "PRAC"}, "PRO-REITORIA DE ENSINO DA UFCG": {"nome": "Pró-reitoria de Ensino", "sigla": "PRE"}, "PRO-REITORIA DE EXTENSAO DA UFCG": {"nome": "Pró-reitoria de Extensão", "sigla": "PROPEX"}, "PRO-REITORIA DE GESTAO ADM-FINANCEIRA DA UFCG": {"nome": "Pró-reitoria de Gestão Adm-Financeira", "sigla": "PRGAF"}, "PRO-REITORIA DE GESTAO DE PESSOAS": {"nome": "Pró-reitoria de Gestão de Pessoas", "sigla": "SRH"}, "PRO-REITORIA DE POS-GRADUACAO DA UFCG": {"nome": "Pró-reitoria de Pós-Graduação", "sigla": "PRPG"}, "REITORIA/GABINETE DA UFCG": {"nome": "Reitoria/Gabinete", "sigla": ""}, "SECRETARIA DE PLANEJ. E ORCAMENTO DA UFCG": {"nome": "Secretaria de Planej. e Orçamento", "sigla": "SEPLAN"}, "SECRETARIA DE PROJETOS ESTRATEGICOS DA UFCG": {"nome": "Secretaria de Projetos Estratégicos", "sigla": "SEPE"}, "SECRETARIA DE RECURSOS HUMANOS DA UFCG": {"nome": "Secretaria de Recursos Humanos", "sigla": "SRH"}, "SECRETARIA DOS ORGAOS DEL. SUPERIORES DA UFCG": {"nome": "Secretaria dos Órgãos Del. Superiores", "sigla": "SODS"}}, "nds": ["AUXILIO FINANCEIRO A ESTUDANTES", "DIARIAS - PESSOAL CIVIL", "OBRIGACOES TRIBUTARIAS E CONTRIBUTIVAS", "OUTROS SERVICOS DE TERCEIROS - PESSOA FISICA", "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "PASSAGENS E DESPESAS COM LOCOMOCAO", "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ"], "dados": {"2020": {}, "2021": {}, "2022": {}, "2023": {}, "2024": {}, "2025": {}, "2026": {"PREFEITURA UNIVERSITARIA DA UFCG": {"DET": 116745.2, "EMP": 102191.25, "LIQ": 98866.39, "PAG": 97538.61, "DISP": 17878.81, "children": [{"label": "AUXILIO FINANCEIRO A ESTUDANTES", "nd_raw": "AUXILIO FINANCEIRO A ESTUDANTES", "DET": 837.5, "EMP": 837.5, "LIQ": 837.5, "PAG": 837.5, "DISP": 0.0, "children": [{"label": "BOLSAS DE ESTUDO NO PAIS", "DET": 837.5, "EMP": 837.5, "LIQ": 837.5, "PAG": 837.5, "DISP": 0.0, "children": [{"label": "M20RKG01I1N — GESTAO DA UNIDADE-PU", "DET": 837.5, "EMP": 837.5, "LIQ": 837.5, "PAG": 837.5, "DISP": 0.0}]}]}, {"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 19908.53, "EMP": 10000.0, "LIQ": 6675.14, "PAG": 6161.86, "DISP": 13233.39, "children": [{"label": "DIARIAS NO PAIS", "DET": 10000.0, "EMP": 10000.0, "LIQ": 6675.14, "PAG": 6161.86, "DISP": 3324.86, "children": [{"label": "M20RKG01I1N — GESTAO DA UNIDADE-PU", "DET": 10000.0, "EMP": 10000.0, "LIQ": 6675.14, "PAG": 6161.86, "DISP": 3324.86}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 9908.53, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 9908.53, "children": [{"label": "M20RKG01I1N — GESTAO DA UNIDADE-PU", "DET": 9908.53, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 9908.53}]}]}, {"label": "OBRIGACOES TRIBUTARIAS E CONTRIBUTIVAS", "nd_raw": "OBRIGACOES TRIBUTARIAS E CONTRIBUTIVAS", "DET": 13010.02, "EMP": 13010.02, "LIQ": 13010.02, "PAG": 13010.02, "DISP": 0.0, "children": [{"label": "TAXAS", "DET": 13010.02, "EMP": 13010.02, "LIQ": 13010.02, "PAG": 13010.02, "DISP": 0.0, "children": [{"label": "M20RKG01ITN — GESTAO DA UNIDADE-PU/TAXAS", "DET": 13010.02, "EMP": 13010.02, "LIQ": 13010.02, "PAG": 13010.02, "DISP": 0.0}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 650.34, "EMP": 650.34, "LIQ": 650.34, "PAG": 650.34, "DISP": 0.0, "children": [{"label": "SERVICOS TECNICOS PROFISSIONAIS", "DET": 650.34, "EMP": 650.34, "LIQ": 650.34, "PAG": 650.34, "DISP": 0.0, "children": [{"label": "M20RKG01ITN — GESTAO DA UNIDADE-PU/TAXAS", "DET": 650.34, "EMP": 650.34, "LIQ": 650.34, "PAG": 650.34, "DISP": 0.0}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 7960.31, "EMP": 3314.89, "LIQ": 3314.89, "PAG": 3314.89, "DISP": 4645.42, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 4645.42, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 4645.42, "children": [{"label": "M20RKG01I1N — GESTAO DA UNIDADE-PU", "DET": 4645.42, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 4645.42}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 3314.89, "EMP": 3314.89, "LIQ": 3314.89, "PAG": 3314.89, "DISP": 0.0, "children": [{"label": "M20RKG01I1N — GESTAO DA UNIDADE-PU", "DET": 3314.89, "EMP": 3314.89, "LIQ": 3314.89, "PAG": 3314.89, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 74378.5, "EMP": 74378.5, "LIQ": 74378.5, "PAG": 73564.0, "DISP": 0.0, "children": [{"label": "LOCACAO DE SOFTWARES", "DET": 71935.0, "EMP": 71935.0, "LIQ": 71935.0, "PAG": 71935.0, "DISP": 0.0, "children": [{"label": "M20RKG01GSN — GESTAO DA UNIDADE - SOFTWARE", "DET": 71935.0, "EMP": 71935.0, "LIQ": 71935.0, "PAG": 71935.0, "DISP": 0.0}]}, {"label": "OUTSOURCING DE IMPRESSAO", "DET": 2443.5, "EMP": 2443.5, "LIQ": 2443.5, "PAG": 1629.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 2443.5, "EMP": 2443.5, "LIQ": 2443.5, "PAG": 1629.0, "DISP": 0.0}]}]}]}, "PRO-REITORIA DE ASSUNTOS COMUNITARIOS DA UFCG": {"DET": 40494.27, "EMP": 23083.56, "LIQ": 11293.36, "PAG": 10362.4, "DISP": 29200.91, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 20861.27, "EMP": 18000.0, "LIQ": 6209.8, "PAG": 5489.84, "DISP": 14651.47, "children": [{"label": "DIARIAS NO PAIS", "DET": 18000.0, "EMP": 18000.0, "LIQ": 6209.8, "PAG": 5489.84, "DISP": 11790.2, "children": [{"label": "M20RKG01G1N — GESTAO DA UNIDADE-PRAC", "DET": 18000.0, "EMP": 18000.0, "LIQ": 6209.8, "PAG": 5489.84, "DISP": 11790.2}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 2861.27, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 2861.27, "children": [{"label": "M20RKG01G1N — GESTAO DA UNIDADE-PRAC", "DET": 2861.27, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 2861.27}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA FISICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA FISICA", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0, "children": [{"label": "M20RKG01G1N — GESTAO DA UNIDADE-PRAC", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 14000.0, "EMP": 4450.56, "LIQ": 4450.56, "PAG": 4450.56, "DISP": 9549.44, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 9549.44, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 9549.44, "children": [{"label": "M20RKG01G1N — GESTAO DA UNIDADE-PRAC", "DET": 9549.44, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 9549.44}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 4450.56, "EMP": 4450.56, "LIQ": 4450.56, "PAG": 4450.56, "DISP": 0.0, "children": [{"label": "M20RKG01G1N — GESTAO DA UNIDADE-PRAC", "DET": 4450.56, "EMP": 4450.56, "LIQ": 4450.56, "PAG": 4450.56, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 633.0, "EMP": 633.0, "LIQ": 633.0, "PAG": 422.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 633.0, "EMP": 633.0, "LIQ": 633.0, "PAG": 422.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 633.0, "EMP": 633.0, "LIQ": 633.0, "PAG": 422.0, "DISP": 0.0}]}]}]}, "PRO-REITORIA DE ENSINO DA UFCG": {"DET": 33943.51, "EMP": 21657.2, "LIQ": 12352.11, "PAG": 11930.11, "DISP": 21591.4, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 11677.51, "EMP": 11677.51, "LIQ": 2372.42, "PAG": 2372.42, "DISP": 9305.09, "children": [{"label": "DIARIAS NO PAIS", "DET": 11677.51, "EMP": 11677.51, "LIQ": 2372.42, "PAG": 2372.42, "DISP": 9305.09, "children": [{"label": "M20RKG01D1N — GESTAO DA UNIDADE-PRE", "DET": 11677.51, "EMP": 11677.51, "LIQ": 2372.42, "PAG": 2372.42, "DISP": 9305.09}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 3000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3000.0, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 3000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3000.0, "children": [{"label": "M20RKG01D1N — GESTAO DA UNIDADE-PRE", "DET": 3000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3000.0}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 18000.0, "EMP": 8713.69, "LIQ": 8713.69, "PAG": 8713.69, "DISP": 9286.31, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 9286.31, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 9286.31, "children": [{"label": "M20RKG01D1N — GESTAO DA UNIDADE-PRE", "DET": 9286.31, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 9286.31}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 8713.69, "EMP": 8713.69, "LIQ": 8713.69, "PAG": 8713.69, "DISP": 0.0, "children": [{"label": "M20RKG01D1N — GESTAO DA UNIDADE-PRE", "DET": 8713.69, "EMP": 8713.69, "LIQ": 8713.69, "PAG": 8713.69, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 1266.0, "EMP": 1266.0, "LIQ": 1266.0, "PAG": 844.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 1266.0, "EMP": 1266.0, "LIQ": 1266.0, "PAG": 844.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 1266.0, "EMP": 1266.0, "LIQ": 1266.0, "PAG": 844.0, "DISP": 0.0}]}]}]}, "PRO-REITORIA DE EXTENSAO DA UFCG": {"DET": 29252.0, "EMP": 15270.91, "LIQ": 12691.49, "PAG": 11198.59, "DISP": 16560.51, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 8000.0, "EMP": 8000.0, "LIQ": 6420.58, "PAG": 6420.58, "DISP": 1579.42, "children": [{"label": "DIARIAS NO PAIS", "DET": 8000.0, "EMP": 8000.0, "LIQ": 6420.58, "PAG": 6420.58, "DISP": 1579.42, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 8000.0, "EMP": 8000.0, "LIQ": 6420.58, "PAG": 6420.58, "DISP": 1579.42}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA FISICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA FISICA", "DET": 6000.0, "EMP": 1000.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 6000.0, "children": [{"label": "DIARIAS A COLABORADORES EVENTUAIS NO PAIS", "DET": 1000.0, "EMP": 1000.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 1000.0, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 1000.0, "EMP": 1000.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 1000.0}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 5800.0, "EMP": 2690.4, "LIQ": 2690.4, "PAG": 1681.5, "DISP": 3109.6, "children": [{"label": "FESTIVIDADES E HOMENAGENS", "DET": 2690.4, "EMP": 2690.4, "LIQ": 2690.4, "PAG": 1681.5, "DISP": 0.0, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 2690.4, "EMP": 2690.4, "LIQ": 2690.4, "PAG": 1681.5, "DISP": 0.0}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 3109.6, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3109.6, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 3109.6, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3109.6}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 8000.0, "EMP": 2128.51, "LIQ": 2128.51, "PAG": 2128.51, "DISP": 5871.49, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 5871.49, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5871.49, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 5871.49, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5871.49}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 2128.51, "EMP": 2128.51, "LIQ": 2128.51, "PAG": 2128.51, "DISP": 0.0, "children": [{"label": "M20RKG01F1N — GESTAO DA UNIDADE-PROPEX", "DET": 2128.51, "EMP": 2128.51, "LIQ": 2128.51, "PAG": 2128.51, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 1452.0, "EMP": 1452.0, "LIQ": 1452.0, "PAG": 968.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 1452.0, "EMP": 1452.0, "LIQ": 1452.0, "PAG": 968.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 1452.0, "EMP": 1452.0, "LIQ": 1452.0, "PAG": 968.0, "DISP": 0.0}]}]}]}, "PRO-REITORIA DE GESTAO ADM-FINANCEIRA DA UFCG": {"DET": 56438.07, "EMP": 37706.82, "LIQ": 32908.12, "PAG": 31372.12, "DISP": 23529.95, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 11816.09, "EMP": 6386.98, "LIQ": 1588.28, "PAG": 1588.28, "DISP": 10227.81, "children": [{"label": "DIARIAS NO PAIS", "DET": 6386.98, "EMP": 6386.98, "LIQ": 1588.28, "PAG": 1588.28, "DISP": 4798.7, "children": [{"label": "M20RKG01C1N — GESTAO DA UNIDADE-PRA", "DET": 6386.98, "EMP": 6386.98, "LIQ": 1588.28, "PAG": 1588.28, "DISP": 4798.7}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 5429.11, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5429.11, "children": [{"label": "M20RKG01C1N — GESTAO DA UNIDADE-PRA", "DET": 5429.11, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5429.11}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 1681.5, "DISP": 0.0, "children": [{"label": "FESTIVIDADES E HOMENAGENS", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 1681.5, "DISP": 0.0, "children": [{"label": "M20RKG01C1N — GESTAO DA UNIDADE-PRA", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 1681.5, "DISP": 0.0}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 14612.99, "EMP": 1310.85, "LIQ": 1310.85, "PAG": 1310.85, "DISP": 13302.14, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 13302.14, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 13302.14, "children": [{"label": "M20RKG01C1N — GESTAO DA UNIDADE-PRA", "DET": 13302.14, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 13302.14}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 1310.85, "EMP": 1310.85, "LIQ": 1310.85, "PAG": 1310.85, "DISP": 0.0, "children": [{"label": "M20RKG01C1N — GESTAO DA UNIDADE-PRA", "DET": 1310.85, "EMP": 1310.85, "LIQ": 1310.85, "PAG": 1310.85, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 28327.49, "EMP": 28327.49, "LIQ": 28327.49, "PAG": 26791.49, "DISP": 0.0, "children": [{"label": "LOCACAO DE SOFTWARES", "DET": 23719.49, "EMP": 23719.49, "LIQ": 23719.49, "PAG": 23719.49, "DISP": 0.0, "children": [{"label": "M20RKG01C1N — GESTAO DA UNIDADE-PRA", "DET": 7397.49, "EMP": 7397.49, "LIQ": 7397.49, "PAG": 7397.49, "DISP": 0.0}, {"label": "M20RKG01GSN — GESTAO DA UNIDADE - SOFTWARE", "DET": 16322.0, "EMP": 16322.0, "LIQ": 16322.0, "PAG": 16322.0, "DISP": 0.0}]}, {"label": "OUTSOURCING DE IMPRESSAO", "DET": 4608.0, "EMP": 4608.0, "LIQ": 4608.0, "PAG": 3072.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 4608.0, "EMP": 4608.0, "LIQ": 4608.0, "PAG": 3072.0, "DISP": 0.0}]}]}]}, "PRO-REITORIA DE POS-GRADUACAO DA UFCG": {"DET": 22278.69, "EMP": 11728.41, "LIQ": 8726.86, "PAG": 4428.48, "DISP": 13551.83, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 13645.69, "EMP": 11093.86, "LIQ": 8093.86, "PAG": 4006.48, "DISP": 5551.83, "children": [{"label": "DIARIAS NO PAIS", "DET": 11093.86, "EMP": 11093.86, "LIQ": 8093.86, "PAG": 4006.48, "DISP": 3000.0, "children": [{"label": "O20RKO01E1N — GESTAO DA UNIDADE-PRPG", "DET": 11093.86, "EMP": 11093.86, "LIQ": 8093.86, "PAG": 4006.48, "DISP": 3000.0}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 2551.83, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 2551.83, "children": [{"label": "O20RKO01E1N — GESTAO DA UNIDADE-PRPG", "DET": 2551.83, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 2551.83}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 8000.0, "EMP": 1.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 8000.0, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 7998.45, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 7998.45, "children": [{"label": "O20RKO01E1N — GESTAO DA UNIDADE-PRPG", "DET": 7998.45, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 7998.45}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 1.55, "EMP": 1.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 1.55, "children": [{"label": "O20RKO01E1N — GESTAO DA UNIDADE-PRPG", "DET": 1.55, "EMP": 1.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 1.55}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 633.0, "EMP": 633.0, "LIQ": 633.0, "PAG": 422.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 633.0, "EMP": 633.0, "LIQ": 633.0, "PAG": 422.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 633.0, "EMP": 633.0, "LIQ": 633.0, "PAG": 422.0, "DISP": 0.0}]}]}]}, "REITORIA/GABINETE DA UFCG": {"DET": 77387.38, "EMP": 26950.28, "LIQ": 26757.46, "PAG": 24145.64, "DISP": 50629.92, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 26245.59, "EMP": 13809.06, "LIQ": 13616.24, "PAG": 13442.92, "DISP": 12629.35, "children": [{"label": "DIARIAS NO PAIS", "DET": 13809.06, "EMP": 13809.06, "LIQ": 13616.24, "PAG": 13442.92, "DISP": 192.82, "children": [{"label": "M20RKG01A1N — GESTAO DA UNIDADE-REITORIA/GABINETE", "DET": 13809.06, "EMP": 13809.06, "LIQ": 13616.24, "PAG": 13442.92, "DISP": 192.82}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 12436.53, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 12436.53, "children": [{"label": "M20RKG01A1N — GESTAO DA UNIDADE-REITORIA/GABINETE", "DET": 12436.53, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 12436.53}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 1765.58, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 0.0, "DISP": 84.08, "children": [{"label": "FESTIVIDADES E HOMENAGENS", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 0.0, "DISP": 0.0, "children": [{"label": "M20RKG01A1N — GESTAO DA UNIDADE-REITORIA/GABINETE", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 0.0, "DISP": 0.0}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 84.08, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 84.08, "children": [{"label": "M20RKG01A1N — GESTAO DA UNIDADE-REITORIA/GABINETE", "DET": 84.08, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 84.08}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 47105.21, "EMP": 9188.72, "LIQ": 9188.72, "PAG": 9188.72, "DISP": 37916.49, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 37916.49, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 37916.49, "children": [{"label": "M20RKG01A1N — GESTAO DA UNIDADE-REITORIA/GABINETE", "DET": 37916.49, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 37916.49}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 9188.72, "EMP": 9188.72, "LIQ": 9188.72, "PAG": 9188.72, "DISP": 0.0, "children": [{"label": "M20RKG01A1N — GESTAO DA UNIDADE-REITORIA/GABINETE", "DET": 9188.72, "EMP": 9188.72, "LIQ": 9188.72, "PAG": 9188.72, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 2271.0, "EMP": 2271.0, "LIQ": 2271.0, "PAG": 1514.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 2271.0, "EMP": 2271.0, "LIQ": 2271.0, "PAG": 1514.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 2271.0, "EMP": 2271.0, "LIQ": 2271.0, "PAG": 1514.0, "DISP": 0.0}]}]}]}, "SECRETARIA DE PLANEJ. E ORCAMENTO DA UFCG": {"DET": 26751.83, "EMP": 15942.3, "LIQ": 7548.9, "PAG": 5972.62, "DISP": 19202.93, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 16435.33, "EMP": 12578.28, "LIQ": 4184.88, "PAG": 2714.1, "DISP": 12250.45, "children": [{"label": "DIARIAS NO PAIS", "DET": 12578.28, "EMP": 12578.28, "LIQ": 4184.88, "PAG": 2714.1, "DISP": 8393.4, "children": [{"label": "M20RKG01B1N — GESTAO DA UNIDADE-SEPLAN", "DET": 12578.28, "EMP": 12578.28, "LIQ": 4184.88, "PAG": 2714.1, "DISP": 8393.4}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 3857.05, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3857.05, "children": [{"label": "M20RKG01B1N — GESTAO DA UNIDADE-SEPLAN", "DET": 3857.05, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3857.05}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 10000.0, "EMP": 3047.52, "LIQ": 3047.52, "PAG": 3047.52, "DISP": 6952.48, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 6952.48, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 6952.48, "children": [{"label": "M20RKG01B1N — GESTAO DA UNIDADE-SEPLAN", "DET": 6952.48, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 6952.48}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 3047.52, "EMP": 3047.52, "LIQ": 3047.52, "PAG": 3047.52, "DISP": 0.0, "children": [{"label": "M20RKG01B1N — GESTAO DA UNIDADE-SEPLAN", "DET": 3047.52, "EMP": 3047.52, "LIQ": 3047.52, "PAG": 3047.52, "DISP": 0.0}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 316.5, "EMP": 316.5, "LIQ": 316.5, "PAG": 211.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 316.5, "EMP": 316.5, "LIQ": 316.5, "PAG": 211.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 316.5, "EMP": 316.5, "LIQ": 316.5, "PAG": 211.0, "DISP": 0.0}]}]}]}, "SECRETARIA DE PROJETOS ESTRATEGICOS DA UFCG": {"DET": 20000.0, "EMP": 2001.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 20000.0, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 10000.0, "EMP": 2000.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 10000.0, "children": [{"label": "DIARIAS NO PAIS", "DET": 2000.0, "EMP": 2000.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 2000.0, "children": [{"label": "M20RKG01B3N — GESTAO DA UNIDADE - SEPE", "DET": 2000.0, "EMP": 2000.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 2000.0}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 8000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 8000.0, "children": [{"label": "M20RKG01B3N — GESTAO DA UNIDADE - SEPE", "DET": 8000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 8000.0}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0, "children": [{"label": "M20RKG01B3N — GESTAO DA UNIDADE - SEPE", "DET": 5000.0, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 5000.0, "EMP": 1.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 5000.0, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 4998.45, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 4998.45, "children": [{"label": "M20RKG01B3N — GESTAO DA UNIDADE - SEPE", "DET": 4998.45, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 4998.45}]}, {"label": "PASSAGENS PARA O PAIS", "DET": 1.55, "EMP": 1.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 1.55, "children": [{"label": "M20RKG01B3N — GESTAO DA UNIDADE - SEPE", "DET": 1.55, "EMP": 1.55, "LIQ": 0.0, "PAG": 0.0, "DISP": 1.55}]}]}]}, "SECRETARIA DE RECURSOS HUMANOS DA UFCG": {"DET": 30778.92, "EMP": 8130.0, "LIQ": 5416.64, "PAG": 4267.14, "DISP": 25362.28, "children": [{"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 15362.87, "EMP": 3000.0, "LIQ": 286.64, "PAG": 286.64, "DISP": 15076.23, "children": [{"label": "DIARIAS NO PAIS", "DET": 3000.0, "EMP": 3000.0, "LIQ": 286.64, "PAG": 286.64, "DISP": 2713.36, "children": [{"label": "M20RKG01H1N — GESTAO DA UNIDADE-SRH", "DET": 3000.0, "EMP": 3000.0, "LIQ": 286.64, "PAG": 286.64, "DISP": 2713.36}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 12362.87, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 12362.87, "children": [{"label": "M20RKG01H1N — GESTAO DA UNIDADE-SRH", "DET": 12362.87, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 12362.87}]}]}, {"label": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "nd_raw": "OUTROS SERVICOS DE TERCEIROS - PESSOA JURIDICA", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 1681.5, "DISP": 0.0, "children": [{"label": "FESTIVIDADES E HOMENAGENS", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 1681.5, "DISP": 0.0, "children": [{"label": "M20RKG01H1N — GESTAO DA UNIDADE-SRH", "DET": 1681.5, "EMP": 1681.5, "LIQ": 1681.5, "PAG": 1681.5, "DISP": 0.0}]}]}, {"label": "PASSAGENS E DESPESAS COM LOCOMOCAO", "nd_raw": "PASSAGENS E DESPESAS COM LOCOMOCAO", "DET": 10286.05, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 10286.05, "children": [{"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 10286.05, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 10286.05, "children": [{"label": "M20RKG01H1N — GESTAO DA UNIDADE-SRH", "DET": 10286.05, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 10286.05}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 3448.5, "EMP": 3448.5, "LIQ": 3448.5, "PAG": 2299.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 3448.5, "EMP": 3448.5, "LIQ": 3448.5, "PAG": 2299.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 3448.5, "EMP": 3448.5, "LIQ": 3448.5, "PAG": 2299.0, "DISP": 0.0}]}]}]}, "SECRETARIA DOS ORGAOS DEL. SUPERIORES DA UFCG": {"DET": 30558.74, "EMP": 20384.39, "LIQ": 6870.19, "PAG": 4166.53, "DISP": 23688.55, "children": [{"label": "AUXILIO FINANCEIRO A ESTUDANTES", "nd_raw": "AUXILIO FINANCEIRO A ESTUDANTES", "DET": 9882.5, "EMP": 6055.0, "LIQ": 2680.0, "PAG": 1675.0, "DISP": 7202.5, "children": [{"label": "BOLSAS DE ESTUDO NO PAIS", "DET": 6055.0, "EMP": 6055.0, "LIQ": 2680.0, "PAG": 1675.0, "DISP": 3375.0, "children": [{"label": "M20RKG01A0N — GESTAO DA UNIDADE-SODS", "DET": 6055.0, "EMP": 6055.0, "LIQ": 2680.0, "PAG": 1675.0, "DISP": 3375.0}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 3827.5, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3827.5, "children": [{"label": "M20RKG01A0N — GESTAO DA UNIDADE-SODS", "DET": 3827.5, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 3827.5}]}]}, {"label": "DIARIAS - PESSOAL CIVIL", "nd_raw": "DIARIAS - PESSOAL CIVIL", "DET": 20359.74, "EMP": 14012.89, "LIQ": 3873.69, "PAG": 2280.53, "DISP": 16486.05, "children": [{"label": "DIARIAS NO PAIS", "DET": 14012.89, "EMP": 14012.89, "LIQ": 3873.69, "PAG": 2280.53, "DISP": 10139.2, "children": [{"label": "M20RKG01A0N — GESTAO DA UNIDADE-SODS", "DET": 14012.89, "EMP": 14012.89, "LIQ": 3873.69, "PAG": 2280.53, "DISP": 10139.2}]}, {"label": "NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)", "DET": 6346.85, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 6346.85, "children": [{"label": "M20RKG01A0N — GESTAO DA UNIDADE-SODS", "DET": 6346.85, "EMP": 0.0, "LIQ": 0.0, "PAG": 0.0, "DISP": 6346.85}]}]}, {"label": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "nd_raw": "SERVICOS DE TECNOLOGIA DA INFORMACAO E COMUNICACAO - PJ", "DET": 316.5, "EMP": 316.5, "LIQ": 316.5, "PAG": 211.0, "DISP": 0.0, "children": [{"label": "OUTSOURCING DE IMPRESSAO", "DET": 316.5, "EMP": 316.5, "LIQ": 316.5, "PAG": 211.0, "DISP": 0.0, "children": [{"label": "M20RKG01IMN — GESTAO DA UNIDADE-PU/LOCACAO DE EQUIPAMENTOS", "DET": 316.5, "EMP": 316.5, "LIQ": 316.5, "PAG": 211.0, "DISP": 0.0}]}]}]}}}, "atualizado": "13/06/2026"};
 let selUGR = null;
-let selNDs  = new Set();
-// default: all UGR rows collapsed
+let selNDs = new Set();
 const expanded = {};
 
 document.getElementById('dataAtual').textContent = D.atualizado;
 
-// ── Year ────────────────────────────────────────────────────────────────────
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.querySelector('html');
+  const dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = dark ? '🌙 Modo Escuro' : '☀ Modo Claro';
+}
+
+// ── Year ──────────────────────────────────────────────────────────────────────
 D.anos.slice().reverse().forEach(a => {
   const o = document.createElement('option');
   o.value = a; o.textContent = a;
@@ -232,7 +330,7 @@ D.anos.slice().reverse().forEach(a => {
 });
 document.getElementById('anoSelect').value = Math.max(...D.anos);
 
-// ── UGR list ─────────────────────────────────────────────────────────────────
+// ── UGR list ──────────────────────────────────────────────────────────────────
 function ugrLabel(u) {
   const m = D.ugr_meta[u];
   if (!m) return u;
@@ -258,7 +356,7 @@ function buildUGRList(filter='') {
 function filterUGR(v) { buildUGRList(v); }
 buildUGRList();
 
-// ── ND list ──────────────────────────────────────────────────────────────────
+// ── ND list ───────────────────────────────────────────────────────────────────
 function buildNDList(filter='') {
   const ul = document.getElementById('ndList');
   ul.innerHTML = '';
@@ -279,7 +377,7 @@ function filterND(v) { buildNDList(v); }
 function clearND() { selNDs.clear(); buildNDList(); update(); }
 buildNDList();
 
-// ── Formatters ───────────────────────────────────────────────────────────────
+// ── Formatters ────────────────────────────────────────────────────────────────
 function fmt(v) {
   if(!v) return 'R$ -';
   const abs = Math.abs(v);
@@ -290,131 +388,195 @@ function fmtK(v) {
   if(!v&&v!==0) return 'R$ -';
   return 'R$ '+(v/1e3).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' Mil';
 }
+function fmtMi(v) {
+  if(!v&&v!==0) return 'R$ -';
+  if(Math.abs(v)>=1e6) return 'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' Mi';
+  return 'R$ '+(v/1e3).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+' Mil';
+}
 function pct(a,b){ return b?Math.round(a/b*1000)/10:0; }
 function isZero(r){ return !r.DET && !r.EMP && !r.LIQ && !r.PAG; }
+function badgeCls(p){ return p>=80?'bg-g':p>=40?'bg-a':'bg-r'; }
 
-// ── Filter ND on a row ───────────────────────────────────────────────────────
+// ── Filter helpers ────────────────────────────────────────────────────────────
 function rowMatchesND(nd) {
   if(selNDs.size === 0) return true;
   return selNDs.has(nd.nd_raw || nd.label);
 }
 
-// ── Main update ──────────────────────────────────────────────────────────────
-function update() {
-  const ano = document.getElementById('anoSelect').value;
-  const yd  = D.dados[ano] || {};
-  const ugrs = selUGR ? (yd[selUGR] ? [selUGR] : []) : D.ugrs.filter(u => yd[u]);
-
-  // Totals (applying ND filter)
-  let tDET=0,tEMP=0,tLIQ=0,tPAG=0,tDISP=0;
-  ugrs.forEach(u => {
-    const r = yd[u]; if(!r) return;
-    if(selNDs.size === 0) {
-      tDET+=r.DET; tEMP+=r.EMP; tLIQ+=r.LIQ; tPAG+=r.PAG;
-    } else {
-      (r.children||[]).forEach(nd => {
-        if(!rowMatchesND(nd)) return;
-        tDET+=nd.DET; tEMP+=nd.EMP; tLIQ+=nd.LIQ; tPAG+=nd.PAG;
-      });
-    }
-  });
-
-  // Bars
-  const pEMP=pct(tEMP,tDET), pLIQ=pct(tLIQ,tDET), pPAG=pct(tPAG,tDET);
-  document.getElementById('bDET').textContent = fmtK(tDET);
-  document.getElementById('bEMP').style.width = Math.max(pEMP,12)+'%';
-  document.getElementById('bEMP').textContent = fmtK(tEMP)+' ('+pEMP+'%)';
-  document.getElementById('bLIQ').style.width = Math.max(pLIQ,12)+'%';
-  document.getElementById('bLIQ').textContent = fmtK(tLIQ)+' ('+pLIQ+'%)';
-  document.getElementById('bPAG').style.width = Math.max(pPAG,8)+'%';
-  document.getElementById('bPAG').textContent = fmtK(tPAG)+' ('+pPAG+'%)';
-  document.getElementById('pctBot').textContent = pPAG+'%';
-
-  // Table
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-
-  ugrs.forEach(u => {
-    const r = yd[u]; if(!r) return;
-
-    // Compute filtered totals for this UGR
-    let uDET=r.DET, uEMP=r.EMP, uLIQ=r.LIQ, uPAG=r.PAG, uDISP=r.DISP;
-    if(selNDs.size > 0) {
-      uDET=0; uEMP=0; uLIQ=0; uPAG=0; uDISP=0;
-      (r.children||[]).forEach(nd => {
-        if(!rowMatchesND(nd)) return;
-        uDET+=nd.DET; uEMP+=nd.EMP; uLIQ+=nd.LIQ; uPAG+=nd.PAG; uDISP+=nd.DISP;
-      });
-      if(!uDET && !uEMP && !uLIQ && !uPAG) return; // skip zero UGR
-    }
-
+// ── Expand / Collapse all ─────────────────────────────────────────────────────
+function expandAll() {
+  const yd = D.dados[document.getElementById('anoSelect').value] || {};
+  D.ugrs.filter(u=>yd[u]).forEach(u => {
     const uid = 'ugr_'+u.replace(/\W/g,'_');
-    const exp = !!expanded[uid]; // default collapsed
-    const lbl = ugrLabel(u);
+    expanded[uid]=true;
+    (yd[u].children||[]).forEach(nd => {
+      const ndid=uid+'_'+nd.label.replace(/\W/g,'_').slice(0,25);
+      expanded[ndid]=true;
+      (nd.children||[]).forEach(ndd => { expanded[ndid+'_'+ndd.label.replace(/\W/g,'_').slice(0,20)]=true; });
+    });
+  });
+  update();
+}
+function collapseAll() { Object.keys(expanded).forEach(k=>delete expanded[k]); update(); }
 
-    const trU = document.createElement('tr');
-    trU.className = 'ugr-row';
-    trU.innerHTML = `<td>
-      <span class="expand-btn" onclick="toggle('${uid}',this)">${exp?'⊟':'⊞'}</span>${lbl}
-    </td>
-    <td class="td-det">${fmt(uDET)}</td>
-    <td class="td-emp">${fmt(uEMP)}</td>
-    <td class="td-liq">${fmt(uLIQ)}</td>
-    <td class="td-pag">${fmt(uPAG)}</td>
-    <td>${fmt(uDISP)}</td>`;
-    tbody.appendChild(trU);
-
-    if(!exp) return;
-
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const ano = document.getElementById('anoSelect').value;
+  const yd = D.dados[ano] || {};
+  const ugrs = selUGR?(yd[selUGR]?[selUGR]:[]):D.ugrs.filter(u=>yd[u]);
+  const rows=[['Nivel','Descricao','Detalhado','Empenhado','Liquidado','Pagos','Saldo Disponivel']];
+  ugrs.forEach(u => {
+    const r=yd[u]; if(!r) return;
+    rows.push(['UGR',ugrLabel(u),r.DET,r.EMP,r.LIQ,r.PAG,r.DISP]);
     (r.children||[]).forEach(nd => {
-      if(!rowMatchesND(nd)) return;
-      if(isZero(nd)) return;
-
-      const ndid = uid+'_'+nd.label.replace(/\W/g,'_').slice(0,25);
-      const ndExp = !!expanded[ndid];
-      const trN = document.createElement('tr');
-      trN.className = 'nd-row';
-      trN.innerHTML = `<td class="indent1">
-        <span class="expand-btn" onclick="toggle('${ndid}',this)">${ndExp?'⊟':'⊞'}</span>${nd.label}
-      </td>
-      <td class="td-det">${fmt(nd.DET)}</td>
-      <td class="td-emp">${fmt(nd.EMP)}</td>
-      <td class="td-liq">${fmt(nd.LIQ)}</td>
-      <td class="td-pag">${fmt(nd.PAG)}</td>
-      <td>${fmt(nd.DISP)}</td>`;
-      tbody.appendChild(trN);
-
-      if(!ndExp) return;
-
+      if(!rowMatchesND(nd)||isZero(nd)) return;
+      rows.push(['ND',nd.label,nd.DET,nd.EMP,nd.LIQ,nd.PAG,nd.DISP]);
       (nd.children||[]).forEach(ndd => {
         if(isZero(ndd)) return;
-        const nddid = ndid+'_'+ndd.label.replace(/\W/g,'_').slice(0,20);
-        const nddExp = !!expanded[nddid];
-        const hasKids = (ndd.children||[]).length > 0;
-        const trD = document.createElement('tr');
-        trD.className = 'ndd-row';
-        trD.innerHTML = `<td class="indent2">
-          ${hasKids?`<span class="expand-btn" onclick="toggle('${nddid}',this)">${nddExp?'⊟':'⊞'}</span>`:'<span style="display:inline-block;width:21px"></span>'}
-          ${ndd.label}
-        </td>
-        <td class="td-det">${fmt(ndd.DET)}</td>
-        <td class="td-emp">${fmt(ndd.EMP)}</td>
-        <td class="td-liq">${fmt(ndd.LIQ)}</td>
-        <td class="td-pag">${fmt(ndd.PAG)}</td>
-        <td>${fmt(ndd.DISP)}</td>`;
-        tbody.appendChild(trD);
+        rows.push(['NDD',ndd.label,ndd.DET,ndd.EMP,ndd.LIQ,ndd.PAG,ndd.DISP]);
+        (ndd.children||[]).forEach(pi => {
+          if(!isZero(pi)) rows.push(['PI',pi.label,pi.DET,pi.EMP,pi.LIQ,pi.PAG,pi.DISP]);
+        });
+      });
+    });
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='execucao_ufcg_'+ano+'.csv'; a.click();
+}
 
-        if(nddExp && hasKids) {
-          (ndd.children||[]).forEach(pi => {
+// ── Copy link ─────────────────────────────────────────────────────────────────
+function copyLink(btn) {
+  const ano=document.getElementById('anoSelect').value;
+  const h='ano='+ano+(selUGR?'&ugr='+encodeURIComponent(selUGR):'')+
+    ([...selNDs].length?'&nd='+ [...selNDs].map(encodeURIComponent).join(','):'');
+  navigator.clipboard.writeText(location.href.split('#')[0]+'#'+h).then(()=>{
+    const orig=btn.innerHTML; btn.textContent='✓ Copiado!';
+    setTimeout(()=>{btn.innerHTML=orig;},2000);
+  });
+}
+
+// ── Restore URL hash ──────────────────────────────────────────────────────────
+(function(){
+  const h=location.hash.slice(1); if(!h) return;
+  const p=new URLSearchParams(h);
+  if(p.get('ano')) document.getElementById('anoSelect').value=p.get('ano');
+  if(p.get('ugr')) selUGR=p.get('ugr');
+  if(p.get('nd')) p.get('nd').split(',').forEach(n=>selNDs.add(decodeURIComponent(n)));
+  buildUGRList(); buildNDList();
+})();
+
+// ── Main update ───────────────────────────────────────────────────────────────
+function update() {
+  const ano=document.getElementById('anoSelect').value;
+  const yd=D.dados[ano]||{};
+  const ugrs=selUGR?(yd[selUGR]?[selUGR]:[]):D.ugrs.filter(u=>yd[u]);
+  const searchQ=(document.getElementById('tblSearch').value||'').trim().toLowerCase();
+
+  let tDET=0,tEMP=0,tLIQ=0,tPAG=0;
+  ugrs.forEach(u=>{
+    const r=yd[u]; if(!r) return;
+    if(selNDs.size===0){ tDET+=r.DET;tEMP+=r.EMP;tLIQ+=r.LIQ;tPAG+=r.PAG; }
+    else (r.children||[]).forEach(nd=>{
+      if(!rowMatchesND(nd)) return;
+      tDET+=nd.DET;tEMP+=nd.EMP;tLIQ+=nd.LIQ;tPAG+=nd.PAG;
+    });
+  });
+
+  // KPI cards
+  document.getElementById('kDET').textContent=fmtMi(tDET);
+  document.getElementById('kEMP').textContent=fmtMi(tEMP);
+  document.getElementById('kEMPs').textContent=pct(tEMP,tDET)+'% do dotado';
+  document.getElementById('kLIQ').textContent=fmtMi(tLIQ);
+  document.getElementById('kLIQs').textContent=pct(tLIQ,tDET)+'% do dotado';
+  document.getElementById('kDISP').textContent=fmtMi(tDET-tLIQ);
+
+  // Bars
+  const pEMP=pct(tEMP,tDET),pLIQ=pct(tLIQ,tDET),pPAG=pct(tPAG,tDET);
+  document.getElementById('bDET').textContent=fmtK(tDET);
+  document.getElementById('bEMP').style.width=Math.max(pEMP,12)+'%';
+  document.getElementById('bEMP').textContent=fmtK(tEMP)+' ('+pEMP+'%)';
+  document.getElementById('bLIQ').style.width=Math.max(pLIQ,12)+'%';
+  document.getElementById('bLIQ').textContent=fmtK(tLIQ)+' ('+pLIQ+'%)';
+  document.getElementById('bPAG').style.width=Math.max(pPAG,8)+'%';
+  document.getElementById('bPAG').textContent=fmtK(tPAG)+' ('+pPAG+'%)';
+
+  // Table
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+
+  ugrs.forEach(u=>{
+    const r=yd[u]; if(!r) return;
+    let uDET=r.DET,uEMP=r.EMP,uLIQ=r.LIQ,uPAG=r.PAG,uDISP=r.DISP;
+    if(selNDs.size>0){
+      uDET=0;uEMP=0;uLIQ=0;uPAG=0;uDISP=0;
+      (r.children||[]).forEach(nd=>{
+        if(!rowMatchesND(nd)) return;
+        uDET+=nd.DET;uEMP+=nd.EMP;uLIQ+=nd.LIQ;uPAG+=nd.PAG;uDISP+=nd.DISP;
+      });
+      if(!uDET&&!uEMP&&!uLIQ&&!uPAG) return;
+    }
+    const uid='ugr_'+u.replace(/\W/g,'_');
+    const exp=!!expanded[uid];
+    const lbl=ugrLabel(u);
+    const uPct=pct(uLIQ,uDET);
+    const badge='<span class="exec-badge '+badgeCls(uPct)+'">'+uPct+'% liq.</span>';
+    const ugrMatch=!searchQ||lbl.toLowerCase().includes(searchQ);
+    const trU=document.createElement('tr');
+    trU.className='ugr-row';
+    trU.innerHTML='<td><span class="expand-btn" onclick="toggle(''+uid+'',this)">'+(exp?'⊟':'⊞')+'</span>'+lbl+badge+'</td>'
+      +'<td class="td-det">'+fmt(uDET)+'</td>'
+      +'<td class="td-emp">'+fmt(uEMP)+'</td>'
+      +'<td class="td-liq">'+fmt(uLIQ)+'</td>'
+      +'<td class="td-pag">'+fmt(uPAG)+'</td>'
+      +'<td>'+fmt(uDISP)+'</td>';
+    if(!ugrMatch&&!exp) trU.classList.add('tr-hidden');
+    tbody.appendChild(trU);
+    if(!exp) return;
+
+    (r.children||[]).forEach(nd=>{
+      if(!rowMatchesND(nd)||isZero(nd)) return;
+      const ndMatch=!searchQ||nd.label.toLowerCase().includes(searchQ)||ugrMatch;
+      const ndid=uid+'_'+nd.label.replace(/\W/g,'_').slice(0,25);
+      const ndExp=!!expanded[ndid];
+      const trN=document.createElement('tr');
+      trN.className='nd-row';
+      if(!ndMatch&&!ndExp) trN.classList.add('tr-hidden');
+      trN.innerHTML='<td class="indent1"><span class="expand-btn" onclick="toggle(''+ndid+'',this)">'+(ndExp?'⊟':'⊞')+'</span>'+nd.label+'</td>'
+        +'<td class="td-det">'+fmt(nd.DET)+'</td><td class="td-emp">'+fmt(nd.EMP)+'</td>'
+        +'<td class="td-liq">'+fmt(nd.LIQ)+'</td><td class="td-pag">'+fmt(nd.PAG)+'</td>'
+        +'<td>'+fmt(nd.DISP)+'</td>';
+      tbody.appendChild(trN);
+      if(!ndExp) return;
+
+      (nd.children||[]).forEach(ndd=>{
+        if(isZero(ndd)) return;
+        const nddMatch=!searchQ||ndd.label.toLowerCase().includes(searchQ)||ndMatch;
+        const nddid=ndid+'_'+ndd.label.replace(/\W/g,'_').slice(0,20);
+        const nddExp=!!expanded[nddid];
+        const hasKids=(ndd.children||[]).length>0;
+        const trD=document.createElement('tr');
+        trD.className='ndd-row';
+        if(!nddMatch&&!nddExp) trD.classList.add('tr-hidden');
+        trD.innerHTML='<td class="indent2">'
+          +(hasKids?'<span class="expand-btn" onclick="toggle(''+nddid+'',this)">'+(nddExp?'⊟':'⊞')+'</span>':'<span style="display:inline-block;width:21px"></span>')
+          +ndd.label+'</td>'
+          +'<td class="td-det">'+fmt(ndd.DET)+'</td><td class="td-emp">'+fmt(ndd.EMP)+'</td>'
+          +'<td class="td-liq">'+fmt(ndd.LIQ)+'</td><td class="td-pag">'+fmt(ndd.PAG)+'</td>'
+          +'<td>'+fmt(ndd.DISP)+'</td>';
+        tbody.appendChild(trD);
+        if(nddExp&&hasKids) {
+          (ndd.children||[]).forEach(pi=>{
             if(isZero(pi)) return;
-            const trP = document.createElement('tr');
-            trP.className = 'pi-row';
-            trP.innerHTML = `<td class="indent3"><span style="display:inline-block;width:21px"></span>${pi.label}</td>
-            <td class="td-det">${fmt(pi.DET)}</td>
-            <td class="td-emp">${fmt(pi.EMP)}</td>
-            <td class="td-liq">${fmt(pi.LIQ)}</td>
-            <td class="td-pag">${fmt(pi.PAG)}</td>
-            <td>${fmt(pi.DISP)}</td>`;
+            const piMatch=!searchQ||pi.label.toLowerCase().includes(searchQ)||nddMatch;
+            const trP=document.createElement('tr');
+            trP.className='pi-row';
+            if(!piMatch) trP.classList.add('tr-hidden');
+            trP.innerHTML='<td class="indent3"><span style="display:inline-block;width:21px"></span>'+pi.label+'</td>'
+              +'<td class="td-det">'+fmt(pi.DET)+'</td><td class="td-emp">'+fmt(pi.EMP)+'</td>'
+              +'<td class="td-liq">'+fmt(pi.LIQ)+'</td><td class="td-pag">'+fmt(pi.PAG)+'</td>'
+              +'<td>'+fmt(pi.DISP)+'</td>';
             tbody.appendChild(trP);
           });
         }
@@ -422,22 +584,16 @@ function update() {
     });
   });
 
-  // Total row
-  const ttr = document.createElement('tr');
-  ttr.className = 'total-row';
-  ttr.innerHTML = `<td>Total</td>
-    <td class="td-det">${fmt(tDET)}</td>
-    <td class="td-emp">${fmt(tEMP)}</td>
-    <td class="td-liq">${fmt(tLIQ)}</td>
-    <td class="td-pag">${fmt(tPAG)}</td>
-    <td>${fmt(tDET - tLIQ)}</td>`;
+  const ttr=document.createElement('tr');
+  ttr.className='total-row';
+  ttr.innerHTML='<td>Total</td>'
+    +'<td class="td-det">'+fmt(tDET)+'</td><td class="td-emp">'+fmt(tEMP)+'</td>'
+    +'<td class="td-liq">'+fmt(tLIQ)+'</td><td class="td-pag">'+fmt(tPAG)+'</td>'
+    +'<td>'+fmt(tDET-tLIQ)+'</td>';
   tbody.appendChild(ttr);
 }
 
-function toggle(id, btn) {
-  expanded[id] = !expanded[id];
-  update();
-}
+function toggle(id,btn) { expanded[id]=!expanded[id]; update(); }
 
 update();
 </script>
