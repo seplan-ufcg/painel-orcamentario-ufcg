@@ -525,7 +525,7 @@ function update() {
     const ugrMatch=!searchQ||lbl.toLowerCase().includes(searchQ);
     const trU=document.createElement('tr');
     trU.className='ugr-row';
-    trU.innerHTML='<td><span class="expand-btn" onclick="toggle(''+uid+'',this)">'+(exp?'⊟':'⊞')+'</span>'+lbl+badge+'</td>'
+    trU.innerHTML='<td><span class="expand-btn" onclick="toggle(\''+uid+'\',this)">'+(exp?'⊟':'⊞')+'</span>'+lbl+badge+'</td>'
       +'<td class="td-det">'+fmt(uDET)+'</td>'
       +'<td class="td-emp">'+fmt(uEMP)+'</td>'
       +'<td class="td-liq">'+fmt(uLIQ)+'</td>'
@@ -543,7 +543,7 @@ function update() {
       const trN=document.createElement('tr');
       trN.className='nd-row';
       if(!ndMatch&&!ndExp) trN.classList.add('tr-hidden');
-      trN.innerHTML='<td class="indent1"><span class="expand-btn" onclick="toggle(''+ndid+'',this)">'+(ndExp?'⊟':'⊞')+'</span>'+nd.label+'</td>'
+      trN.innerHTML='<td class="indent1"><span class="expand-btn" onclick="toggle(\''+ndid+'\',this)">'+(ndExp?'⊟':'⊞')+'</span>'+nd.label+'</td>'
         +'<td class="td-det">'+fmt(nd.DET)+'</td><td class="td-emp">'+fmt(nd.EMP)+'</td>'
         +'<td class="td-liq">'+fmt(nd.LIQ)+'</td><td class="td-pag">'+fmt(nd.PAG)+'</td>'
         +'<td>'+fmt(nd.DISP)+'</td>';
@@ -560,7 +560,7 @@ function update() {
         trD.className='ndd-row';
         if(!nddMatch&&!nddExp) trD.classList.add('tr-hidden');
         trD.innerHTML='<td class="indent2">'
-          +(hasKids?'<span class="expand-btn" onclick="toggle(''+nddid+'',this)">'+(nddExp?'⊟':'⊞')+'</span>':'<span style="display:inline-block;width:21px"></span>')
+          +(hasKids?'<span class="expand-btn" onclick="toggle(\''+nddid+'\',this)">'+(nddExp?'⊟':'⊞')+'</span>':'<span style="display:inline-block;width:21px"></span>')
           +ndd.label+'</td>'
           +'<td class="td-det">'+fmt(ndd.DET)+'</td><td class="td-emp">'+fmt(ndd.EMP)+'</td>'
           +'<td class="td-liq">'+fmt(ndd.LIQ)+'</td><td class="td-pag">'+fmt(ndd.PAG)+'</td>'
