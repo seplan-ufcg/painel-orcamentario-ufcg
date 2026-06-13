@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -176,7 +176,7 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
     <p style="margin-top:3px;font-size:10px;">Escopo: Reitoria &middot; Pró-Reitorias &middot; Secretarias &middot; Prefeitura Universitária</p>
   </div>
   <div class="hdr-actions">
-    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">☀ Modo Claro</button>
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙 Modo Escuro</button>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ function toggleTheme() {
   const html = document.querySelector('html');
   const dark = html.getAttribute('data-theme') === 'dark';
   html.setAttribute('data-theme', dark ? 'light' : 'dark');
-  document.getElementById('themeBtn').textContent = dark ? '🌙 Modo Escuro' : '☀ Modo Claro';
+  document.getElementById('themeBtn').textContent = dark ? '☀ Modo Claro' : '🌙 Modo Escuro';
 }
 
 // ── Year ──────────────────────────────────────────────────────────────────────
