@@ -165,7 +165,35 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@media print{
+  html,body{background:white!important;color:#111!important;font-size:11px}
+  .hdr{background:#003D7C!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:8px 16px}
+  .hdr h1,.hdr p{color:white!important}
+  .sidebar,.toolbar,.btn-theme,.tb-btn,.tbl-search,.ano-bar .toolbar{display:none!important}
+  .body{display:block!important;height:auto!important}
+  .main{overflow:visible!important}
+  .kpi-grid{display:grid!important;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px}
+  .kpi-card{background:#f0f4f8!important;border:1px solid #c5d3e0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .kpi-val{font-size:13px!important}
+  .exec-section{padding:6px 12px}
+  .bar-track{background:#e8eef5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bar-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact;min-width:60px!important;font-size:10px!important}
+  .tbl-section{padding:6px 12px}
+  .tbl-wrap{overflow:visible!important}
+  table{font-size:9px!important;width:100%!important}
+  thead th{background:#003D7C!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:4px 6px!important}
+  tbody td{padding:3px 6px!important;border-bottom:1px solid #ddd!important}
+  tbody tr.ugr-row td{background:#dce8f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  tbody tr.total-row td{background:#e8eef5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .exec-badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ano-bar{background:#f0f4f8!important}
+  .footer{background:#e8eef5!important;font-size:8px!important}
+  .tr-hidden{display:none!important}
+  @page{margin:1cm;size:A4 landscape}
+}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="hdr">
@@ -221,9 +249,13 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
           <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
           Recolher tudo
         </button>
-        <button class="tb-btn" onclick="exportCSV()">
-          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exportar CSV
+        <button class="tb-btn" onclick="exportExcel()">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Excel
+        </button>
+        <button class="tb-btn" onclick="exportPDF()">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          PDF
         </button>
         <button class="tb-btn" id="copyBtn" onclick="copyLink(this)">
           <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -444,6 +476,70 @@ function exportCSV() {
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
   a.download='execucao_ufcg_'+ano+'.csv'; a.click();
+}
+
+// ── Export Excel ─────────────────────────────────────────────────────────────
+function exportExcel() {
+  const ano = document.getElementById('anoSelect').value;
+  const yd = D.dados[ano] || {};
+  const ugrs = selUGR?(yd[selUGR]?[selUGR]:[]):D.ugrs.filter(u=>yd[u]);
+  const rows = [['Nível','Descrição','Detalhado (R$)','Empenhado (R$)','Liquidado (R$)','Pagos (R$)','Saldo Disponível (R$)','% Liquidado']];
+  ugrs.forEach(u => {
+    const r=yd[u]; if(!r) return;
+    rows.push(['UGR', ugrLabel(u), r.DET, r.EMP, r.LIQ, r.PAG, r.DISP, pct(r.LIQ,r.DET)/100]);
+    (r.children||[]).forEach(nd => {
+      if(!rowMatchesND(nd)||isZero(nd)) return;
+      rows.push(['ND', nd.label, nd.DET, nd.EMP, nd.LIQ, nd.PAG, nd.DISP, pct(nd.LIQ,nd.DET)/100]);
+      (nd.children||[]).forEach(ndd => {
+        if(isZero(ndd)) return;
+        rows.push(['NDD', ndd.label, ndd.DET, ndd.EMP, ndd.LIQ, ndd.PAG, ndd.DISP, pct(ndd.LIQ,ndd.DET)/100]);
+        (ndd.children||[]).forEach(pi => {
+          if(!isZero(pi)) rows.push(['PI', pi.label, pi.DET, pi.EMP, pi.LIQ, pi.PAG, pi.DISP, pct(pi.LIQ,pi.DET)/100]);
+        });
+      });
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  // Largura das colunas
+  ws['!cols'] = [{wch:6},{wch:60},{wch:18},{wch:18},{wch:18},{wch:18},{wch:20},{wch:14}];
+  // Formatar colunas monetárias e percentual
+  const fmt_brl = 'R$ #,##0.00';
+  const fmt_pct = '0.0%';
+  for(let i=1;i<rows.length;i++) {
+    ['C','D','E','F','G'].forEach(col => {
+      const cell = ws[col+(i+1)];
+      if(cell) cell.z = fmt_brl;
+    });
+    const pcell = ws['H'+(i+1)];
+    if(pcell) pcell.z = fmt_pct;
+  }
+  // Cabeçalho em negrito
+  ['A1','B1','C1','D1','E1','F1','G1','H1'].forEach(ref => {
+    if(ws[ref]) ws[ref].s = {font:{bold:true}};
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Execução '+ano);
+  // Aba de resumo KPI
+  const kpiData = [
+    ['Indicador','Valor (R$)','% do Dotado'],
+    ['Dotado', parseFloat(document.getElementById('kDET').textContent.replace(/[^0-9,]/g,'').replace(',','.'))*1000 || 0, 1],
+    ['Empenhado', 0, parseFloat((document.getElementById('kEMPs').textContent||'0'))/100],
+    ['Liquidado', 0, parseFloat((document.getElementById('kLIQs').textContent||'0'))/100],
+    ['Saldo Disponível', 0, null]
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(kpiData);
+  ws2['!cols']=[{wch:20},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Resumo');
+  XLSX.writeFile(wb, 'Execucao_Orcamentaria_UFCG_'+ano+'.xlsx');
+}
+
+// ── Export PDF ────────────────────────────────────────────────────────────────
+function exportPDF() {
+  // Expandir tudo antes de imprimir para mostrar o detalhamento completo
+  expandAll();
+  setTimeout(() => {
+    window.print();
+  }, 300);
 }
 
 // ── Copy link ─────────────────────────────────────────────────────────────────
