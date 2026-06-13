@@ -38,9 +38,16 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 
 /* LAYOUT */
 .body{display:flex;height:calc(100vh - 80px)}
+.body.sb-hidden .sidebar{width:0;padding:0;overflow:hidden;border:none;min-width:0}
+.body.sb-hidden .main{flex:1}
+
+/* SIDEBAR TOGGLE BTN */
+.btn-sb{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:white;
+  border-radius:6px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1}
+.btn-sb:hover{background:rgba(255,255,255,.22)}
 
 /* SIDEBAR */
-.sidebar{width:265px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.sidebar{width:265px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;transition:width .2s,padding .2s}
 [data-theme=light] .sidebar{background:#f8fafc}
 .sb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:7px}
 .search-box{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 9px}
@@ -152,22 +159,13 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
 
 .ndd-cell{position:relative;cursor:default}
 .pi-tip{
-  display:none;position:absolute;left:0;top:calc(100% + 2px);z-index:200;
-  background:var(--bg);border:1px solid var(--border);border-radius:7px;
-  padding:8px 12px;min-width:420px;box-shadow:0 6px 18px rgba(0,0,0,.18);
-  font-size:10.5px;pointer-events:none;
+  display:none;position:absolute;left:44px;bottom:calc(100% + 4px);z-index:200;
+  background:rgba(10,20,55,.82);color:#dce8f8;border-radius:4px;
+  padding:4px 9px;font-size:9px;line-height:1.7;pointer-events:none;
+  white-space:nowrap;border:1px solid rgba(255,255,255,.08);
 }
+[data-theme=light] .pi-tip{background:rgba(0,25,70,.8);color:#e8f0ff}
 .ndd-cell:hover .pi-tip{display:block}
-.pi-tip-title{font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.7px;color:var(--accent);margin-bottom:5px}
-.pi-tip table{border-collapse:collapse;width:100%}
-.pi-tip th{font-size:9px;text-transform:uppercase;color:var(--text3);
-  padding:2px 8px;text-align:right;white-space:nowrap}
-.pi-tip th:first-child{text-align:left}
-.pi-tip td{padding:3px 8px;color:var(--text2);text-align:right;
-  border-top:1px solid var(--border);white-space:nowrap}
-.pi-tip td:first-child{text-align:left;color:var(--text);max-width:220px;
-  overflow:hidden;text-overflow:ellipsis}
 
 .exec-badge{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:7px;vertical-align:middle}
 .bg-g{background:rgba(46,168,90,.15);color:#2ea85a}
@@ -223,6 +221,7 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
     <p style="margin-top:3px;font-size:10px;">Escopo: Reitoria &middot; Pró-Reitorias &middot; Secretarias &middot; Prefeitura Universitária</p>
   </div>
   <div class="hdr-actions">
+    <button class="btn-sb" onclick="toggleSidebar()" title="Mostrar/ocultar painel lateral">☰</button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙 Modo Escuro</button>
   </div>
 </div>
@@ -237,6 +236,7 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
         <input type="text" placeholder="Pesquisar" id="ugrSearch" oninput="filterUGR(this.value)">
       </div>
       <ul class="ugr-list" id="ugrList"></ul>
+      <button class="btn-limpar" id="btnLimparUGR" onclick="clearUGR()" style="display:none">Limpar seleção UGR</button>
     </div>
     <div>
       <div class="sb-title">Natureza de Despesa</div>
@@ -366,6 +366,10 @@ const expanded = {};
 document.getElementById('dataAtual').textContent = D.atualizado;
 
 // ── Theme toggle ──────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.querySelector('.body').classList.toggle('sb-hidden');
+}
+
 function toggleTheme() {
   const html = document.querySelector('html');
   const dark = html.getAttribute('data-theme') === 'dark';
@@ -400,7 +404,7 @@ function buildUGRList(filter='') {
     r.type='radio'; r.name='ugr'; r.checked = selUGR === u;
     li.appendChild(r);
     li.appendChild(document.createTextNode(ugrLabel(u)));
-    li.onclick = () => { selUGR = selUGR === u ? null : u; buildUGRList(filter); update(); };
+    li.onclick = () => { selUGR = selUGR === u ? null : u; buildUGRList(filter); update(); document.getElementById('btnLimparUGR').style.display=selUGR?'':'none'; };
     ul.appendChild(li);
   });
 }
@@ -426,6 +430,7 @@ function buildNDList(filter='') {
 }
 function filterND(v) { buildNDList(v); }
 function clearND() { selNDs.clear(); buildNDList(); update(); }
+function clearUGR() { selUGR=null; document.getElementById('btnLimparUGR').style.display='none'; buildUGRList(); update(); }
 buildNDList();
 
 // ── Formatters ────────────────────────────────────────────────────────────────
@@ -682,11 +687,9 @@ function update() {
         trD.className='ndd-row';
         if(!nddMatch&&!nddPiMatch) trD.classList.add('tr-hidden');
         const piRows=(ndd.children||[]).filter(pi=>!isZero(pi));
-        const tipHtml=piRows.length?'<div class="pi-tip"><div class="pi-tip-title">Programas de Trabalho</div><table>'
-          +'<tr><th>PI</th><th>Detalhado</th><th>Liquidado</th><th>Saldo</th></tr>'
-          +piRows.map(pi=>'<tr><td title="'+pi.label+'">'+pi.label+'</td>'
-            +'<td>'+fmt(pi.DET)+'</td><td>'+fmt(pi.LIQ)+'</td><td>'+fmt(pi.DISP)+'</td></tr>').join('')
-          +'</table></div>':'';
+        const tipHtml=piRows.length?'<div class="pi-tip">'
+          +piRows.map(pi=>'· '+pi.label).join('<br>')
+          +'</div>':'';
         trD.innerHTML='<td class="indent2"><div class="ndd-cell">'
           +'<span style="display:inline-block;width:21px"></span>'
           +ndd.label+tipHtml+'</div></td>'
