@@ -38,7 +38,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 
 /* LAYOUT */
 .body{display:flex;height:calc(100vh - 80px)}
-.body.sb-hidden .sidebar{width:0;padding:0;overflow:hidden;border:none;min-width:0}
+.body.sb-hidden .sidebar{max-width:0;width:0;padding:0;overflow:hidden;border:none}
 .body.sb-hidden .main{flex:1}
 
 /* SIDEBAR TOGGLE TAB */
@@ -49,7 +49,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 .sb-toggle:hover{background:var(--accent);color:white}
 
 /* SIDEBAR */
-.sidebar{width:265px;flex-shrink:0;background:var(--bg2);border-right:none;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;transition:width .2s,padding .2s;border-right:1px solid var(--border)}
+.sidebar{width:265px;max-width:265px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;transition:max-width .2s,padding .2s}
 [data-theme=light] .sidebar{background:#f8fafc}
 .sb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:7px}
 .search-box{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 9px}
