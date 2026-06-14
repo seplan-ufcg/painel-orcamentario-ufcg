@@ -41,13 +41,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 .body.sb-hidden .sidebar{width:0;padding:0;overflow:hidden;border:none;min-width:0}
 .body.sb-hidden .main{flex:1}
 
-/* SIDEBAR TOGGLE BTN */
-.btn-sb{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:white;
-  border-radius:6px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1}
-.btn-sb:hover{background:rgba(255,255,255,.22)}
+/* SIDEBAR TOGGLE TAB */
+.sb-toggle{width:14px;flex-shrink:0;background:var(--bg3);border:none;
+  border-left:1px solid var(--border);border-right:1px solid var(--border);
+  color:var(--text3);cursor:pointer;font-size:9px;display:flex;
+  align-items:center;justify-content:center;padding:0;transition:background .15s}
+.sb-toggle:hover{background:var(--accent);color:white}
 
 /* SIDEBAR */
-.sidebar{width:265px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;transition:width .2s,padding .2s}
+.sidebar{width:265px;flex-shrink:0;background:var(--bg2);border-right:none;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;transition:width .2s,padding .2s;border-right:1px solid var(--border)}
 [data-theme=light] .sidebar{background:#f8fafc}
 .sb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:7px}
 .search-box{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 9px}
@@ -221,7 +223,6 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
     <p style="margin-top:3px;font-size:10px;">Escopo: Reitoria &middot; Pró-Reitorias &middot; Secretarias &middot; Prefeitura Universitária</p>
   </div>
   <div class="hdr-actions">
-    <button class="btn-sb" onclick="toggleSidebar()" title="Mostrar/ocultar painel lateral">☰</button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙 Modo Escuro</button>
   </div>
 </div>
@@ -248,6 +249,9 @@ tbody tr.total-row td.td-pag{color:var(--c-pag)}
       <button class="btn-limpar" onclick="clearND()">Limpar seleção ND</button>
     </div>
   </div>
+
+  <!-- SIDEBAR TOGGLE TAB -->
+  <button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()" title="Recolher/expandir painel">◀</button>
 
   <!-- MAIN -->
   <div class="main">
@@ -367,7 +371,9 @@ document.getElementById('dataAtual').textContent = D.atualizado;
 
 // ── Theme toggle ──────────────────────────────────────────────────────────────
 function toggleSidebar() {
-  document.querySelector('.body').classList.toggle('sb-hidden');
+  const body=document.querySelector('.body');
+  body.classList.toggle('sb-hidden');
+  document.getElementById('sbToggle').textContent=body.classList.contains('sb-hidden')?'▶':'◀';
 }
 
 function toggleTheme() {
