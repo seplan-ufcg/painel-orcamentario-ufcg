@@ -1,5 +1,6 @@
 *.xlsx
 *.xls
-*.py
 *.csv
 *.json
+*.py
+!gerar_painel.py

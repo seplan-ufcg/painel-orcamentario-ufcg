@@ -1,0 +1,40 @@
+name: Atualizar Painel Orçamentário
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 09h todo dia (UTC)
+  workflow_dispatch:     # permite rodar manualmente
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências
+        run: pip install pandas openpyxl
+
+      - name: Gerar painel
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: 'true'
+        run: |
+          cd ..
+          python gerar_painel.py
+
+      - name: Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Push alterações
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          git push origin main || echo "Sem alterações para publicar"
