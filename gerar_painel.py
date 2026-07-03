@@ -905,7 +905,7 @@ if IS_CI:
     else:
         print('Nenhuma alteracao para publicar (HTML identico ao anterior).')
 else:
-    SITE_DIR = os.path.join(BASE, 'painel-github')
+    SITE_DIR = r'C:\Users\SAMSUNG\dev\painel-orcamentario-ufcg'
     TOKEN    = os.getenv('GITHUB_TOKEN')
     REMOTE   = f'https://{TOKEN}@github.com/seplan-ufcg/painel-orcamentario-ufcg.git'
 
