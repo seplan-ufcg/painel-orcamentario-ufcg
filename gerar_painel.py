@@ -11,12 +11,12 @@ EXCEL    = os.path.join(BASE, 'CONTROLE ORÇAMENTÁRIO  UFCG - PAINEL BI.xlsx')
 LOGO     = os.path.join(BASE, 'ufcg_logo.png')
 HTML_OUT = os.path.join(BASE, 'painel_orcamentario.html')
 
-# Baixar planilha do Google Drive se não existir ou em CI
+# Baixar planilha do Google Drive quando rodando em CI (GitHub Actions)
 GDRIVE_ID = '1DrNWtx9ZUympWPa3QzGLKLcV-Noe52hW'
-GDRIVE_URL = f'https://drive.google.com/uc?export=download&id={GDRIVE_ID}'
-if not os.path.exists(EXCEL) or os.getenv('CI'):
+if os.getenv('CI'):
     print(f"[{datetime.now():%Y-%m-%d %H:%M}] Baixando planilha do Google Drive...")
-    urllib.request.urlretrieve(GDRIVE_URL, EXCEL)
+    import gdown
+    gdown.download(id=GDRIVE_ID, output=EXCEL, quiet=False)
     print(f"[{datetime.now():%Y-%m-%d %H:%M}] Planilha baixada.")
 
 # UGRs com siglas e nomes sem "da UFCG"
@@ -891,24 +891,31 @@ with open(HTML_OUT,'w',encoding='utf-8') as f:
 # Publicar no GitHub Pages
 import shutil, subprocess
 
-SITE_DIR = BASE if os.path.basename(BASE) == 'painel-github' else os.path.join(BASE, 'painel-github')
-TOKEN    = os.getenv('GITHUB_TOKEN')
-if TOKEN:
-    REMOTE = f'https://x-access-token:{TOKEN}@github.com/seplan-ufcg/painel-orcamentario-ufcg.git'
-else:
-    REMOTE = 'origin'
-
-shutil.copy(HTML_OUT, os.path.join(SITE_DIR, 'index.html'))
-
-subprocess.run(['git', '-C', SITE_DIR, 'add', 'index.html'], check=True)
-msg = f'Atualizacao automatica {datetime.now().strftime("%d/%m/%Y %H:%M")}'
-result = subprocess.run(['git', '-C', SITE_DIR, 'commit', '-m', msg])
-if result.returncode == 0:
-    if TOKEN:
-        subprocess.run(['git', '-C', SITE_DIR, 'push', REMOTE, 'main'], check=True)
-    else:
+IS_CI = bool(os.getenv('CI'))
+if IS_CI:
+    # No GitHub Actions o próprio checkout já configura um token com permissão de push
+    SITE_DIR = BASE
+    shutil.copy(HTML_OUT, os.path.join(SITE_DIR, 'index.html'))
+    subprocess.run(['git', '-C', SITE_DIR, 'add', 'index.html'], check=True)
+    msg = f'Atualizacao automatica {datetime.now().strftime("%d/%m/%Y %H:%M")}'
+    result = subprocess.run(['git', '-C', SITE_DIR, 'commit', '-m', msg])
+    if result.returncode == 0:
         subprocess.run(['git', '-C', SITE_DIR, 'push'], check=True)
-    print('Painel publicado!')
+        print('Painel publicado!')
+    else:
+        print('Nenhuma alteracao para publicar (HTML identico ao anterior).')
 else:
-    print('Nenhuma alteracao para publicar.')
+    SITE_DIR = os.path.join(BASE, 'painel-github')
+    TOKEN    = os.getenv('GITHUB_TOKEN')
+    REMOTE   = f'https://{TOKEN}@github.com/seplan-ufcg/painel-orcamentario-ufcg.git'
+
+    shutil.copy(HTML_OUT, os.path.join(SITE_DIR, 'index.html'))
+    subprocess.run(['git', '-C', SITE_DIR, 'add', 'index.html'], check=True)
+    msg = f'Atualizacao automatica {datetime.now().strftime("%d/%m/%Y %H:%M")}'
+    result = subprocess.run(['git', '-C', SITE_DIR, 'commit', '-m', msg])
+    if result.returncode == 0:
+        subprocess.run(['git', '-C', SITE_DIR, 'push', REMOTE, 'main'], check=True)
+        print('Painel publicado em https://seplan-ufcg.github.io/painel-orcamentario-ufcg/')
+    else:
+        print('Nenhuma alteracao para publicar (HTML identico ao anterior).')
 print(f"Painel gerado: {HTML_OUT}")
