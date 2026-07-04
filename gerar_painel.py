@@ -12,7 +12,7 @@ LOGO     = os.path.join(BASE, 'ufcg_logo.png')
 HTML_OUT = os.path.join(BASE, 'painel_orcamentario.html')
 
 # Baixar planilha do Google Drive quando rodando em CI (GitHub Actions)
-GDRIVE_ID = '1DrNWtx9ZUympWPa3QzGLKLcV-Noe52hW'
+GDRIVE_ID = '13ItIuMTXQllt6y-w9JjoXG26UsB1m0ym'
 if os.getenv('CI'):
     print(f"[{datetime.now():%Y-%m-%d %H:%M}] Baixando planilha do Google Drive...")
     import gdown
