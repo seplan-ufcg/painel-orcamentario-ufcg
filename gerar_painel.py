@@ -11,6 +11,51 @@ EXCEL    = os.path.join(BASE, 'CONTROLE ORÇAMENTÁRIO  UFCG - PAINEL BI.xlsx')
 LOGO     = os.path.join(BASE, 'ufcg_logo.png')
 HTML_OUT = os.path.join(BASE, 'painel_orcamentario.html')
 
+# Planilha de planejamento (Limite 2026 = 75% do gasto de 2025), uma aba por unidade.
+# Fica junto do script (versionada no repositório) pra também estar disponível
+# na atualização automática via GitHub Actions, não só localmente.
+EXCEL_PLAN = os.path.join(BASE, '(Pró-Reitorias) PLANEJAMENTO ORÇAMENTÁRIO 2026.xlsx')
+PLAN_SHEET_POR_UGR = {
+    'PREFEITURA UNIVERSITARIA DA UFCG':             'PU',
+    'PRO-REITORIA DE ASSUNTOS COMUNITARIOS DA UFCG': 'PRAC',
+    'PRO-REITORIA DE ENSINO DA UFCG':               'PRE',
+    'PRO-REITORIA DE EXTENSAO DA UFCG':             'PROPEX',
+    'PRO-REITORIA DE GESTAO ADM-FINANCEIRA DA UFCG': 'PRGAF',
+    'PRO-REITORIA DE POS-GRADUACAO DA UFCG':        'PRPG',
+    'REITORIA/GABINETE DA UFCG':                    'REITORIAGABINETE',
+    'SECRETARIA DE PLANEJ. E ORCAMENTO DA UFCG':    'SEPLAN',
+    'SECRETARIA DE PROJETOS ESTRATEGICOS DA UFCG':  'SEPE',
+    'SECRETARIA DE RECURSOS HUMANOS DA UFCG':       'SRH',
+    'SECRETARIA DOS ORGAOS DEL. SUPERIORES DA UFCG': 'SODS',
+}
+LIMITE_2026 = {}
+if os.path.exists(EXCEL_PLAN):
+    print(f"[{datetime.now():%Y-%m-%d %H:%M}] Lendo limites 2026 (planejamento Pró-Reitorias)...")
+    import openpyxl
+    wb_plan = openpyxl.load_workbook(EXCEL_PLAN, data_only=True, read_only=True)
+    for ugr_nome, aba in PLAN_SHEET_POR_UGR.items():
+        if aba not in wb_plan.sheetnames:
+            continue
+        ws_plan = wb_plan[aba]
+        for row in ws_plan.iter_rows(min_row=1, max_row=8, max_col=4):
+            for cell in row:
+                if isinstance(cell.value, str) and cell.value.strip().startswith('Limite'):
+                    val = ws_plan.cell(row=cell.row, column=cell.column + 1).value
+                    if isinstance(val, (int, float)):
+                        LIMITE_2026[ugr_nome] = round(float(val), 2)
+                    break
+    wb_plan.close()
+    print(f"  Limites carregados: {len(LIMITE_2026)}/{len(PLAN_SHEET_POR_UGR)} unidades")
+else:
+    print(f"[{datetime.now():%Y-%m-%d %H:%M}] Planilha de planejamento não encontrada — painel sem coluna Limite 2026.")
+
+# Overrides manuais do Limite 2026, só pro painel (não altera a planilha de
+# planejamento original). Pedido em 09/08/2026: PRE passa a usar R$ 36.000,00.
+LIMITE_2026_OVERRIDE = {
+    'PRO-REITORIA DE ENSINO DA UFCG': 36000.00,
+}
+LIMITE_2026.update(LIMITE_2026_OVERRIDE)
+
 # Baixar planilha do Google Drive quando rodando em CI (GitHub Actions)
 GDRIVE_ID = '13ItIuMTXQllt6y-w9JjoXG26UsB1m0ym'
 if os.getenv('CI'):
@@ -58,6 +103,44 @@ for col in ['UGR_Desc','Nat_Desp','Nat_Desp_Desc','Nat_Desp_Det','Nat_Desp_Det_D
 df['UGR_Nome'] = df['UGR_Desc'].where(df['UGR_Desc'] != '', df['UGR'].astype(str)).str.strip().str.upper()
 df['Nat_Desp_Desc'] = df['Nat_Desp_Desc'].replace({'nan':'','Natureza Despesa':''}).str.strip()
 
+# PIs de "GESTAO DA UNIDADE-X" que a planilha às vezes lança sob a UGR genérica
+# 159195 (UNIVERSIDADE FEDERAL DE CAMPINA GRANDE) em vez da UGR real da unidade.
+# Cada um desses PIs pertence a uma única unidade (conferido na planilha de
+# referência "PIs" do Planejamento Orçamentário 2026) — reclassifica pela UGR certa.
+PI_UGR_FORCA = {
+    'M20RKG01G1N':  'PRO-REITORIA DE ASSUNTOS COMUNITARIOS DA UFCG',  # GESTAO DA UNIDADE-PRAC
+    'M20RKG01A1N':  'REITORIA/GABINETE DA UFCG',                      # GESTAO DA UNIDADE-REITORIA/GABINETE
+    'O20RKO01E1N':  'PRO-REITORIA DE POS-GRADUACAO DA UFCG',          # GESTAO DA UNIDADE-PRPG
+    'M20RKG01H1N':  'SECRETARIA DE RECURSOS HUMANOS DA UFCG',         # GESTAO DA UNIDADE-SRH
+    'M20RKG01C1N':  'PRO-REITORIA DE GESTAO ADM-FINANCEIRA DA UFCG',  # GESTAO DA UNIDADE-PRA
+    'M20RKG01A0N':  'SECRETARIA DOS ORGAOS DEL. SUPERIORES DA UFCG',  # GESTAO DA UNIDADE-SODS
+    'M20RKG01D1N':  'PRO-REITORIA DE ENSINO DA UFCG',                 # GESTAO DA UNIDADE-PRE
+    'M20RKG01I1N':  'PREFEITURA UNIVERSITARIA DA UFCG',               # GESTAO DA UNIDADE-PU
+}
+for pi_code, ugr_nome in PI_UGR_FORCA.items():
+    df.loc[df['PI'].str.upper() == pi_code, 'UGR_Nome'] = ugr_nome
+
+# PI "de gestão" de cada UGR — o único que tem Limite 2026 definido na planilha
+# de planejamento. Usado pra separar, dentro da UGR, o que é comparável ao
+# limite planejado do que é "fora do planejamento" (outros PIs sem limite).
+GESTAO_PI_POR_UGR = {
+    'PRO-REITORIA DE ASSUNTOS COMUNITARIOS DA UFCG':  'M20RKG01G1N',
+    'REITORIA/GABINETE DA UFCG':                      'M20RKG01A1N',
+    'PRO-REITORIA DE POS-GRADUACAO DA UFCG':          'O20RKO01E1N',
+    'SECRETARIA DE RECURSOS HUMANOS DA UFCG':         'M20RKG01H1N',
+    'PRO-REITORIA DE GESTAO ADM-FINANCEIRA DA UFCG':  'M20RKG01C1N',
+    'SECRETARIA DOS ORGAOS DEL. SUPERIORES DA UFCG':  'M20RKG01A0N',
+    'PRO-REITORIA DE ENSINO DA UFCG':                 'M20RKG01D1N',
+    'PREFEITURA UNIVERSITARIA DA UFCG':               'M20RKG01I1N',
+    'PRO-REITORIA DE EXTENSAO DA UFCG':               'M20RKG01F1N',
+    'SECRETARIA DE PLANEJ. E ORCAMENTO DA UFCG':      'M20RKG01B1N',
+    'SECRETARIA DE PROJETOS ESTRATEGICOS DA UFCG':    'M20RKG01B3N',
+}
+
+# NDs que sempre contam como "Fora do planejamento", mesmo quando lançadas
+# sob o PI de gestão — não fazem parte do que o Limite 2026 cobre.
+ND_SEMPRE_FORA_PLANO = set()
+
 # ── Filtros fixos (conforme Power BI) ───────────────────────────────────────
 df = df[df['Acao_Gov'].str.upper() == '20RK']
 PI_EXCLUIR = {'M20RKG01IJN', 'M20RKG01ILN', 'M20RKG01IIN'}
@@ -83,6 +166,54 @@ def nd_label(nd):
         return 'NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)'
     return nd
 
+def build_nd_tree(du):
+    """Constrói a árvore ND -> NDD -> PI para um subconjunto de linhas."""
+    nds = []
+    for nd_raw, gnd in du.groupby('Nat_Desp_Desc'):
+        nd_desc = nd_label(nd_raw)
+        if gnd['DETALHADO'].sum() == 0 and gnd['EMPENHADO'].sum() == 0 and gnd['LIQUIDADO'].sum() == 0 and gnd['PAGOS'].sum() == 0:
+            continue
+        _nd_det = s(gnd['DETALHADO'].sum()); _nd_liq = s(gnd['LIQUIDADO'].sum())
+        nd_row = {
+            'label': nd_desc, 'nd_raw': nd_raw,
+            'DET': _nd_det, 'EMP': s(gnd['EMPENHADO'].sum()),
+            'LIQ': _nd_liq, 'PAG': s(gnd['PAGOS'].sum()),
+            'DISP': saldo(_nd_det, _nd_liq), 'children': []
+        }
+        for ndd_raw, gndd in gnd.groupby('Nat_Desp_Det_Desc'):
+            ndd_strip = ndd_raw.strip()
+            if not ndd_strip or ndd_raw in ('nan','') or ndd_strip.upper() == 'NAO SE APLICA':
+                ndd_desc = 'NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)'
+            else:
+                ndd_desc = ndd_strip
+            if gndd['DETALHADO'].sum() == 0 and gndd['EMPENHADO'].sum() == 0 and gndd['LIQUIDADO'].sum() == 0 and gndd['PAGOS'].sum() == 0:
+                continue
+            _ndd_det = s(gndd['DETALHADO'].sum()); _ndd_liq = s(gndd['LIQUIDADO'].sum())
+            ndd_row = {
+                'label': ndd_desc,
+                'DET': _ndd_det, 'EMP': s(gndd['EMPENHADO'].sum()),
+                'LIQ': _ndd_liq, 'PAG': s(gndd['PAGOS'].sum()),
+                'DISP': saldo(_ndd_det, _ndd_liq), 'children': []
+            }
+            for pi_val, gpi in gndd.groupby('PI'):
+                if pi_val in ('','nan','PI'): continue
+                if gpi['DETALHADO'].sum() == 0 and gpi['EMPENHADO'].sum() == 0 and gpi['LIQUIDADO'].sum() == 0 and gpi['PAGOS'].sum() == 0:
+                    continue
+                pi_desc = gpi['PI_Desc'].iloc[0] if not gpi['PI_Desc'].empty else ''
+                lbl = pi_val
+                if pi_desc and pi_desc not in ('nan',''):
+                    lbl += ' — ' + pi_desc[:55]
+                _pi_det = s(gpi['DETALHADO'].sum()); _pi_liq = s(gpi['LIQUIDADO'].sum())
+                ndd_row['children'].append({
+                    'label': lbl,
+                    'DET': _pi_det, 'EMP': s(gpi['EMPENHADO'].sum()),
+                    'LIQ': _pi_liq, 'PAG': s(gpi['PAGOS'].sum()),
+                    'DISP': saldo(_pi_det, _pi_liq)
+                })
+            nd_row['children'].append(ndd_row)
+        nds.append(nd_row)
+    return nds
+
 print("Agregando dados hierárquicos...")
 dados = {}
 for ano in anos:
@@ -98,50 +229,36 @@ for ano in anos:
             'LIQ': _liq, 'PAG': s(du['PAGOS'].sum()),
             'DISP': saldo(_det, _liq), 'children': []
         }
-        for nd_raw, gnd in du.groupby('Nat_Desp_Desc'):
-            nd_desc = nd_label(nd_raw)
-            # skip zero rows
-            if gnd['DETALHADO'].sum() == 0 and gnd['EMPENHADO'].sum() == 0 and gnd['LIQUIDADO'].sum() == 0 and gnd['PAGOS'].sum() == 0:
-                continue
-            _nd_det = s(gnd['DETALHADO'].sum()); _nd_liq = s(gnd['LIQUIDADO'].sum())
-            nd_row = {
-                'label': nd_desc, 'nd_raw': nd_raw,
-                'DET': _nd_det, 'EMP': s(gnd['EMPENHADO'].sum()),
-                'LIQ': _nd_liq, 'PAG': s(gnd['PAGOS'].sum()),
-                'DISP': saldo(_nd_det, _nd_liq), 'children': []
+        if ano == 2026 and ugr in LIMITE_2026:
+            ugr_row['LIMITE'] = LIMITE_2026[ugr]
+
+        gestao_pi = GESTAO_PI_POR_UGR.get(ugr)
+        if gestao_pi:
+            eh_pi_gestao = du['PI'].str.upper() == gestao_pi
+            eh_nd_fora = du['Nat_Desp_Desc'].str.upper().isin(ND_SEMPRE_FORA_PLANO)
+            dg = du[eh_pi_gestao & ~eh_nd_fora]
+            do_ = du[~eh_pi_gestao | eh_nd_fora]
+            _g_det = s(dg['DETALHADO'].sum()); _g_liq = s(dg['LIQUIDADO'].sum())
+            _f_det = s(do_['DETALHADO'].sum()); _f_liq = s(do_['LIQUIDADO'].sum())
+            gestao_node = {
+                'label': 'PLANEJADO', 'is_group': True,
+                'DET': _g_det, 'EMP': s(dg['EMPENHADO'].sum()),
+                'LIQ': _g_liq, 'PAG': s(dg['PAGOS'].sum()),
+                'DISP': saldo(_g_det, _g_liq), 'children': build_nd_tree(dg)
             }
-            for ndd_raw, gndd in gnd.groupby('Nat_Desp_Det_Desc'):
-                ndd_strip = ndd_raw.strip()
-                if not ndd_strip or ndd_raw in ('nan','') or ndd_strip.upper() == 'NAO SE APLICA':
-                    ndd_desc = 'NAO SE APLICA (VALOR DISPONÍVEL PARA EMPENHAR)'
-                else:
-                    ndd_desc = ndd_strip
-                if gndd['DETALHADO'].sum() == 0 and gndd['EMPENHADO'].sum() == 0 and gndd['LIQUIDADO'].sum() == 0 and gndd['PAGOS'].sum() == 0:
-                    continue
-                _ndd_det = s(gndd['DETALHADO'].sum()); _ndd_liq = s(gndd['LIQUIDADO'].sum())
-                ndd_row = {
-                    'label': ndd_desc,
-                    'DET': _ndd_det, 'EMP': s(gndd['EMPENHADO'].sum()),
-                    'LIQ': _ndd_liq, 'PAG': s(gndd['PAGOS'].sum()),
-                    'DISP': saldo(_ndd_det, _ndd_liq), 'children': []
-                }
-                for pi_val, gpi in gndd.groupby('PI'):
-                    if pi_val in ('','nan','PI'): continue
-                    if gpi['DETALHADO'].sum() == 0 and gpi['EMPENHADO'].sum() == 0 and gpi['LIQUIDADO'].sum() == 0 and gpi['PAGOS'].sum() == 0:
-                        continue
-                    pi_desc = gpi['PI_Desc'].iloc[0] if not gpi['PI_Desc'].empty else ''
-                    lbl = pi_val
-                    if pi_desc and pi_desc not in ('nan',''):
-                        lbl += ' — ' + pi_desc[:55]
-                    _pi_det = s(gpi['DETALHADO'].sum()); _pi_liq = s(gpi['LIQUIDADO'].sum())
-                    ndd_row['children'].append({
-                        'label': lbl,
-                        'DET': _pi_det, 'EMP': s(gpi['EMPENHADO'].sum()),
-                        'LIQ': _pi_liq, 'PAG': s(gpi['PAGOS'].sum()),
-                        'DISP': saldo(_pi_det, _pi_liq)
-                    })
-                nd_row['children'].append(ndd_row)
-            ugr_row['children'].append(nd_row)
+            fora_node = {
+                'label': 'Fora do planejamento (demais PIs, sem limite definido)', 'is_group': True,
+                'DET': _f_det, 'EMP': s(do_['EMPENHADO'].sum()),
+                'LIQ': _f_liq, 'PAG': s(do_['PAGOS'].sum()),
+                'DISP': saldo(_f_det, _f_liq), 'children': build_nd_tree(do_)
+            }
+            ugr_row['children'] = [gestao_node] if _f_det == 0 and _f_liq == 0 and fora_node['EMP'] == 0 and fora_node['PAG'] == 0 else [gestao_node, fora_node]
+            if ano == 2026 and ugr in LIMITE_2026:
+                ugr_row['GESTAO'] = {'DET': _g_det, 'EMP': gestao_node['EMP'], 'LIQ': _g_liq, 'PAG': gestao_node['PAG']}
+                ugr_row['FORA_PLANO'] = {'DET': _f_det, 'EMP': fora_node['EMP'], 'LIQ': _f_liq, 'PAG': fora_node['PAG']}
+        else:
+            ugr_row['children'] = build_nd_tree(du)
+
         dados[str(ano)][ugr] = ugr_row
 
 # Logo
@@ -199,7 +316,7 @@ body{{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--t
 .btn-theme:hover{{background:rgba(255,255,255,.22)}}
 
 /* LAYOUT */
-.body{{display:flex;height:calc(100vh - 80px)}}
+.body{{display:flex;height:calc(100vh - 126px)}}
 .body.sb-hidden .sidebar{{max-width:0;width:0;padding:0;overflow:hidden;border:none}}
 .body.sb-hidden .main{{flex:1}}
 
@@ -245,6 +362,13 @@ body{{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--t
 .tbl-search{{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 8px}}
 .tbl-search input{{background:none;border:none;outline:none;color:var(--text);font-size:11px;width:110px}}
 .tbl-search input::placeholder{{color:var(--text3)}}
+
+.main-search-bar{{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border)}}
+.main-search-bar input{{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 14px;color:var(--text);font-size:13px;outline:none}}
+.main-search-bar input:focus{{border-color:var(--accent)}}
+.main-search-bar input::placeholder{{color:var(--text3)}}
+.btn-limpar-busca{{background:#e0503c;border:none;color:white;border-radius:6px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}}
+.btn-limpar-busca:hover{{background:#c8432f}}
 
 /* KPI CARDS */
 .kpi-grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 18px 8px;border-bottom:1px solid var(--border)}}
@@ -302,6 +426,10 @@ tbody tr.ugr-row:hover td{{filter:brightness(1.08)}}
 tbody tr.nd-row:hover td,tbody tr.ndd-row:hover td,tbody tr.pi-row:hover td{{background:var(--bg3)}}
 [data-theme=light] tbody tr.nd-row:hover td,[data-theme=light] tbody tr.ndd-row:hover td,[data-theme=light] tbody tr.pi-row:hover td{{background:#e2eaf3}}
 tbody tr.ndd-row td{{font-size:11px}}
+tbody tr.group-row td{{font-weight:600;background:var(--bg3)}}
+[data-theme=light] tbody tr.group-row td{{background:#eef3f8}}
+tbody tr.group-row-fora td:first-child{{color:var(--c-liq)}}
+.excedente-tag{{font-size:10px;font-weight:700;color:#d13438;background:rgba(209,52,56,.12);border-radius:10px;padding:2px 8px;display:inline-block;vertical-align:middle;margin-left:6px}}
 tbody tr.pi-row td{{font-size:10.5px;color:var(--text3)}}
 tbody tr.total-row td{{background:var(--bg2);font-weight:700;color:var(--text);border-top:2px solid var(--border)}}
 [data-theme=light] tbody tr.total-row td{{background:#dce8f5}}
@@ -385,8 +513,15 @@ tbody tr.total-row td.td-pag{{color:var(--c-pag)}}
     <p style="margin-top:3px;font-size:10px;">Escopo: Reitoria &middot; Pró-Reitorias &middot; Secretarias &middot; Prefeitura Universitária</p>
   </div>
   <div class="hdr-actions">
+    <button class="btn-theme" id="hamburgerBtn" onclick="toggleSidebar()" title="Recolher/expandir filtros">&#9776; Filtros</button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">🌙 Modo Escuro</button>
   </div>
+</div>
+
+<!-- FILTRO GERAL -->
+<div class="main-search-bar">
+  <input type="text" placeholder="Buscar" id="tblSearch" oninput="update()">
+  <button class="btn-limpar-busca" onclick="document.getElementById('tblSearch').value='';update()">&#10005; Limpar</button>
 </div>
 
 <div class="body">
@@ -422,10 +557,6 @@ tbody tr.total-row td.td-pag{{color:var(--c-pag)}}
       <span class="ano-label">ANO</span>
       <select class="ano-select" id="anoSelect" onchange="update()"></select>
       <div class="toolbar">
-        <div class="tbl-search">
-          <svg width="11" height="11" fill="none" stroke="var(--text3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" placeholder="Buscar na tabela" id="tblSearch" oninput="update()">
-        </div>
         <button class="tb-btn" onclick="expandAll()">
           <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
           Expandir tudo
@@ -504,11 +635,12 @@ tbody tr.total-row td.td-pag{{color:var(--c-pag)}}
           <thead>
             <tr>
               <th>UGR</th>
+              <th title="Limite 2026 = 75% do gasto de 2025 (planejamento Pró-Reitorias)" style="cursor:help">Limite 2026 &#9432;</th>
               <th class="th-det">Detalhado</th>
               <th class="th-emp">Empenhado</th>
               <th class="th-liq">Liquidado</th>
               <th class="th-pag">Pagos</th>
-              <th title="Saldo Disponível = DETALHADO − LIQUIDADO" style="cursor:help">Saldo Disponível &#9432;</th>
+              <th title="Disponível = DETALHADO − LIQUIDADO" style="cursor:help">Disponível (Det. - Liq.) &#9432;</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -535,7 +667,9 @@ document.getElementById('dataAtual').textContent = D.atualizado;
 function toggleSidebar() {{
   const body=document.querySelector('.body');
   body.classList.toggle('sb-hidden');
-  document.getElementById('sbToggle').textContent=body.classList.contains('sb-hidden')?'▶':'◀';
+  const hidden=body.classList.contains('sb-hidden');
+  document.getElementById('sbToggle').textContent=hidden?'▶':'◀';
+  document.getElementById('hamburgerBtn').innerHTML=hidden?'&#9776; Filtros':'&#10005; Filtros';
 }}
 
 function toggleTheme() {{
@@ -626,6 +760,26 @@ function rowMatchesND(nd) {{
   if(selNDs.size === 0) return true;
   return selNDs.has(nd.nd_raw || nd.label);
 }}
+// Achata os filhos de uma UGR pra uma lista plana de NDs, atravessando o
+// agrupamento Gestão/Fora do planejamento quando ele existir.
+function allNDs(r) {{
+  const out=[];
+  (r.children||[]).forEach(top=>{{
+    if(top.is_group) out.push(...(top.children||[]));
+    else out.push(top);
+  }});
+  return out;
+}}
+// Uma UGR "casa" com a busca se o nome dela bate, ou se algum ND/NDD/PI dela bate.
+function ugrSearchMatch(u, r, searchQ) {{
+  if(!searchQ) return true;
+  if(ugrLabel(u).toLowerCase().includes(searchQ)) return true;
+  return allNDs(r).some(nd=>!isZero(nd)&&(
+    nd.label.toLowerCase().includes(searchQ)||(nd.children||[]).some(ndd=>!isZero(ndd)&&(
+      ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
+    ))
+  ));
+}}
 
 // ── Expand / Collapse all ─────────────────────────────────────────────────────
 function expandAll() {{
@@ -633,15 +787,57 @@ function expandAll() {{
   D.ugrs.filter(u=>yd[u]).forEach(u => {{
     const uid = 'ugr_'+u.replace(/\\W/g,'_');
     expanded[uid]=true;
-    (yd[u].children||[]).forEach(nd => {{
-      const ndid=uid+'_'+nd.label.replace(/\\W/g,'_').slice(0,25);
-      expanded[ndid]=true;
-      (nd.children||[]).forEach(ndd => {{ expanded[ndid+'_'+ndd.label.replace(/\\W/g,'_').slice(0,20)]=true; }});
+    (yd[u].children||[]).forEach(top => {{
+      const topId = top.is_group ? uid+'_grp_'+top.label.replace(/\\W/g,'_').slice(0,15) : uid;
+      if(top.is_group) expanded[topId]=true;
+      (top.is_group ? (top.children||[]) : [top]).forEach(nd => {{
+        const ndid=topId+'_'+nd.label.replace(/\\W/g,'_').slice(0,25);
+        expanded[ndid]=true;
+        (nd.children||[]).forEach(ndd => {{ expanded[ndid+'_'+ndd.label.replace(/\\W/g,'_').slice(0,20)]=true; }});
+      }});
     }});
   }});
   update();
 }}
 function collapseAll() {{ Object.keys(expanded).forEach(k=>delete expanded[k]); update(); }}
+
+// Clique simples no ⊞ da UGR: abre a UGR e os grupos PLANEJADO/Fora do
+// planejamento (mostrando as NDs), sem descer até as NDDs.
+function toggleUgr(uid) {{
+  const wasExpanded = !!expanded[uid];
+  expanded[uid] = !wasExpanded;
+  if(!wasExpanded) {{
+    const yd = D.dados[document.getElementById('anoSelect').value] || {{}};
+    const u = D.ugrs.find(x => 'ugr_'+x.replace(/\\W/g,'_') === uid);
+    if(u && yd[u]) {{
+      (yd[u].children||[]).forEach(top => {{
+        if(top.is_group) {{
+          const topId = uid+'_grp_'+top.label.replace(/\\W/g,'_').slice(0,15);
+          expanded[topId] = true;
+        }}
+      }});
+    }}
+  }}
+  update();
+}}
+
+// Duplo-clique no ⊞ da UGR expande tudo dentro dela (grupos, NDs).
+function expandUgrAll(uid, evt) {{
+  if(evt) evt.stopPropagation();
+  const yd = D.dados[document.getElementById('anoSelect').value] || {{}};
+  const u = D.ugrs.find(x => 'ugr_'+x.replace(/\\W/g,'_') === uid);
+  if(!u || !yd[u]) return;
+  expanded[uid]=true;
+  (yd[u].children||[]).forEach(top => {{
+    const topId = top.is_group ? uid+'_grp_'+top.label.replace(/\\W/g,'_').slice(0,15) : uid;
+    if(top.is_group) expanded[topId]=true;
+    (top.is_group ? (top.children||[]) : [top]).forEach(nd => {{
+      const ndid=topId+'_'+nd.label.replace(/\\W/g,'_').slice(0,25);
+      expanded[ndid]=true;
+    }});
+  }});
+  update();
+}}
 
 // ── Export CSV ────────────────────────────────────────────────────────────────
 function exportCSV() {{
@@ -652,7 +848,7 @@ function exportCSV() {{
   ugrs.forEach(u => {{
     const r=yd[u]; if(!r) return;
     rows.push(['UGR',ugrLabel(u),r.DET,r.EMP,r.LIQ,r.PAG,r.DISP]);
-    (r.children||[]).forEach(nd => {{
+    allNDs(r).forEach(nd => {{
       if(!rowMatchesND(nd)||isZero(nd)) return;
       rows.push(['ND',nd.label,nd.DET,nd.EMP,nd.LIQ,nd.PAG,nd.DISP]);
       (nd.children||[]).forEach(ndd => {{
@@ -679,7 +875,7 @@ function exportExcel() {{
   ugrs.forEach(u => {{
     const r=yd[u]; if(!r) return;
     rows.push(['UGR', ugrLabel(u), r.DET, r.EMP, r.LIQ, r.PAG, r.DISP, pct(r.LIQ,r.DET)/100]);
-    (r.children||[]).forEach(nd => {{
+    allNDs(r).forEach(nd => {{
       if(!rowMatchesND(nd)||isZero(nd)) return;
       rows.push(['ND', nd.label, nd.DET, nd.EMP, nd.LIQ, nd.PAG, nd.DISP, pct(nd.LIQ,nd.DET)/100]);
       (nd.children||[]).forEach(ndd => {{
@@ -762,11 +958,12 @@ function update() {{
   const ugrs=selUGR?(yd[selUGR]?[selUGR]:[]):D.ugrs.filter(u=>yd[u]);
   const searchQ=(document.getElementById('tblSearch').value||'').trim().toLowerCase();
 
-  let tDET=0,tEMP=0,tLIQ=0,tPAG=0;
+  let tDET=0,tEMP=0,tLIQ=0,tPAG=0,tLIMITE=0;
   ugrs.forEach(u=>{{
     const r=yd[u]; if(!r) return;
-    if(selNDs.size===0){{ tDET+=r.DET;tEMP+=r.EMP;tLIQ+=r.LIQ;tPAG+=r.PAG; }}
-    else (r.children||[]).forEach(nd=>{{
+    if(!ugrSearchMatch(u,r,searchQ)) return;
+    if(selNDs.size===0){{ tDET+=r.DET;tEMP+=r.EMP;tLIQ+=r.LIQ;tPAG+=r.PAG; if(r.LIMITE) tLIMITE+=r.LIMITE; }}
+    else allNDs(r).forEach(nd=>{{
       if(!rowMatchesND(nd)) return;
       tDET+=nd.DET;tEMP+=nd.EMP;tLIQ+=nd.LIQ;tPAG+=nd.PAG;
     }});
@@ -810,8 +1007,12 @@ function update() {{
     const lbl=ugrLabel(u);
     const uPct=pct(uLIQ,uDET);
     const badge='<span class="exec-badge '+badgeCls(uPct)+'">'+uPct+'% liq.</span>';
+    let limiteCell='<td class="td-limite">—</td>';
+    if(!exp && selNDs.size===0 && r.LIMITE && r.GESTAO){{
+      limiteCell='<td class="td-limite">'+fmt(r.LIMITE)+'</td>';
+    }}
     const ugrMatch=!searchQ||lbl.toLowerCase().includes(searchQ);
-    const childNDMatch=searchQ?(r.children||[]).some(nd=>rowMatchesND(nd)&&!isZero(nd)&&(
+    const childNDMatch=searchQ?allNDs(r).some(nd=>rowMatchesND(nd)&&!isZero(nd)&&(
       nd.label.toLowerCase().includes(searchQ)||(nd.children||[]).some(ndd=>!isZero(ndd)&&(
         ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
       ))
@@ -819,59 +1020,101 @@ function update() {{
     const showUGR=ugrMatch||childNDMatch||exp;
     const trU=document.createElement('tr');
     trU.className='ugr-row';
-    trU.innerHTML='<td><span class="expand-btn" onclick="toggle(\\''+uid+'\\',this)">'+(exp?'⊟':'⊞')+'</span>'+lbl+badge+'</td>'
-      +'<td class="td-det">'+fmt(uDET)+'</td>'
-      +'<td class="td-emp">'+fmt(uEMP)+'</td>'
-      +'<td class="td-liq">'+fmt(uLIQ)+'</td>'
-      +'<td class="td-pag">'+fmt(uPAG)+'</td>'
-      +'<td>'+fmt(uDISP)+'</td>';
+    const numCells = '<td class="td-det">'+fmt(uDET)+'</td><td class="td-emp">'+fmt(uEMP)+'</td><td class="td-liq">'+fmt(uLIQ)+'</td><td class="td-pag">'+fmt(uPAG)+'</td><td>'+fmt(uDISP)+'</td>';
+    trU.innerHTML='<td><span class="expand-btn" onclick="toggleUgr(\\''+uid+'\\')" ondblclick="expandUgrAll(\\''+uid+'\\',event)">'+(exp?'⊟':'⊞')+'</span>'+lbl+badge+'</td>'
+      +limiteCell+numCells;
     if(!showUGR) trU.classList.add('tr-hidden');
     tbody.appendChild(trU);
     if(!exp&&!childNDMatch) return;
 
-    (r.children||[]).forEach(nd=>{{
-      if(!rowMatchesND(nd)||isZero(nd)) return;
-      const ndMatch=!searchQ||nd.label.toLowerCase().includes(searchQ)||ugrMatch;
-      const ndChildMatch=searchQ&&!ndMatch?(nd.children||[]).some(ndd=>!isZero(ndd)&&(
-        ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
+    (r.children||[]).forEach(top=>{{
+      const isGroup=!!top.is_group;
+      if(isGroup && isZero(top)) return;
+      const groupNDs=isGroup?(top.children||[]):[top];
+      const topChildMatch=searchQ?groupNDs.some(nd=>rowMatchesND(nd)&&!isZero(nd)&&(
+        nd.label.toLowerCase().includes(searchQ)||(nd.children||[]).some(ndd=>!isZero(ndd)&&(
+          ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
+        ))
       )):false;
-      const ndid=uid+'_'+nd.label.replace(/\\W/g,'_').slice(0,25);
-      const ndExp=!!expanded[ndid];
-      const trN=document.createElement('tr');
-      trN.className='nd-row';
-      if(!ndMatch&&!ndChildMatch&&!ndExp) trN.classList.add('tr-hidden');
-      trN.innerHTML='<td class="indent1"><span class="expand-btn" onclick="toggle(\\''+ndid+'\\',this)">'+(ndExp?'⊟':'⊞')+'</span>'+nd.label+'</td>'
-        +'<td class="td-det">'+fmt(nd.DET)+'</td><td class="td-emp">'+fmt(nd.EMP)+'</td>'
-        +'<td class="td-liq">'+fmt(nd.LIQ)+'</td><td class="td-pag">'+fmt(nd.PAG)+'</td>'
-        +'<td>'+fmt(nd.DISP)+'</td>';
-      tbody.appendChild(trN);
-      if(!ndExp&&!ndChildMatch&&!ndMatch) return;
 
-      (nd.children||[]).forEach(ndd=>{{
-        if(isZero(ndd)) return;
-        const nddMatch=!searchQ||ndd.label.toLowerCase().includes(searchQ)||ndMatch;
-        const nddPiMatch=searchQ&&!nddMatch?(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ)):false;
-        const trD=document.createElement('tr');
-        trD.className='ndd-row';
-        if(!nddMatch&&!nddPiMatch) trD.classList.add('tr-hidden');
-        const piRows=(ndd.children||[]).filter(pi=>!isZero(pi));
-        const tipHtml=piRows.length?'<span class="pi-tip">'
-          +piRows.map(pi=>'· '+pi.label.split(' ')[0]).join('  ')
-          +'</span>':'';
-        trD.innerHTML='<td class="indent2"><div class="ndd-cell">'
-          +'<span style="display:inline-block;width:21px"></span>'
-          +ndd.label+tipHtml+'</div></td>'
-          +'<td class="td-det">'+fmt(ndd.DET)+'</td><td class="td-emp">'+fmt(ndd.EMP)+'</td>'
-          +'<td class="td-liq">'+fmt(ndd.LIQ)+'</td><td class="td-pag">'+fmt(ndd.PAG)+'</td>'
-          +'<td>'+fmt(ndd.DISP)+'</td>';
-        tbody.appendChild(trD);
+      let topId=uid, ndIndentClass='indent1', nddIndentClass='indent2';
+      if(isGroup){{
+        topId=uid+'_grp_'+top.label.replace(/\\W/g,'_').slice(0,15);
+        const topExp=!!expanded[topId];
+        const topMatch=!searchQ||top.label.toLowerCase().includes(searchQ)||ugrMatch;
+        let limCell='<td class="td-limite">—</td>';
+        let excedTag='';
+        if(r.LIMITE && top.label.indexOf('PLANEJADO')===0){{
+          limCell='<td class="td-limite">'+fmt(r.LIMITE)+'</td>';
+          if(top.DET > r.LIMITE){{
+            const excedente = top.DET - r.LIMITE;
+            excedTag=' <span class="excedente-tag">&#9888; Excedido em '+fmt(excedente)+'</span>';
+          }}
+        }}
+        const trG=document.createElement('tr');
+        trG.className='group-row'+(top.label.indexOf('Fora')===0?' group-row-fora':' group-row-gestao');
+        if(!topMatch&&!topChildMatch&&!topExp) trG.classList.add('tr-hidden');
+        trG.innerHTML='<td class="indent1"><span class="expand-btn" onclick="toggle(\\''+topId+'\\',this)">'+(topExp?'⊟':'⊞')+'</span>↳ '+top.label+excedTag+'</td>'
+          +limCell+'<td class="td-det">'+fmt(top.DET)+'</td>'
+          +'<td class="td-emp">'+fmt(top.EMP)+'</td>'
+          +'<td class="td-liq">'+fmt(top.LIQ)+'</td><td class="td-pag">'+fmt(top.PAG)+'</td>'
+          +'<td>'+fmt(top.DISP)+'</td>';
+        tbody.appendChild(trG);
+        if(!topExp&&!topChildMatch) return;
+        ndIndentClass='indent2'; nddIndentClass='indent3';
+      }}
+
+      groupNDs.forEach(nd=>{{
+        if(!rowMatchesND(nd)||isZero(nd)) return;
+        const ndMatch=!searchQ||nd.label.toLowerCase().includes(searchQ)||ugrMatch;
+        const ndChildMatch=searchQ&&!ndMatch?(nd.children||[]).some(ndd=>!isZero(ndd)&&(
+          ndd.label.toLowerCase().includes(searchQ)||(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ))
+        )):false;
+        const ndid=topId+'_'+nd.label.replace(/\\W/g,'_').slice(0,25);
+        const ndExp=!!expanded[ndid];
+        const trN=document.createElement('tr');
+        trN.className='nd-row';
+        if(!ndMatch&&!ndChildMatch&&!ndExp) trN.classList.add('tr-hidden');
+        trN.innerHTML='<td class="'+ndIndentClass+'"><span class="expand-btn" onclick="toggle(\\''+ndid+'\\',this)">'+(ndExp?'⊟':'⊞')+'</span>'+nd.label+'</td>'
+          +'<td></td>'
+          +'<td class="td-det">'+fmt(nd.DET)+'</td><td class="td-emp">'+fmt(nd.EMP)+'</td>'
+          +'<td class="td-liq">'+fmt(nd.LIQ)+'</td><td class="td-pag">'+fmt(nd.PAG)+'</td>'
+          +'<td>'+fmt(nd.DISP)+'</td>';
+        tbody.appendChild(trN);
+        if(!ndExp&&!ndChildMatch) return;
+
+        (nd.children||[]).forEach(ndd=>{{
+          if(isZero(ndd)) return;
+          const nddMatch=!searchQ||ndd.label.toLowerCase().includes(searchQ)||ndMatch;
+          const nddPiMatch=searchQ&&!nddMatch?(ndd.children||[]).some(pi=>!isZero(pi)&&pi.label.toLowerCase().includes(searchQ)):false;
+          const trD=document.createElement('tr');
+          trD.className='ndd-row';
+          if(!nddMatch&&!nddPiMatch) trD.classList.add('tr-hidden');
+          const piRows=(ndd.children||[]).filter(pi=>!isZero(pi));
+          const tipHtml=piRows.length?'<span class="pi-tip">'
+            +piRows.map(pi=>'· '+pi.label.split(' ')[0]).join('  ')
+            +'</span>':'';
+          trD.innerHTML='<td class="'+nddIndentClass+'"><div class="ndd-cell">'
+            +'<span style="display:inline-block;width:21px"></span>'
+            +ndd.label+tipHtml+'</div></td>'
+            +'<td></td>'
+            +'<td class="td-det">'+fmt(ndd.DET)+'</td><td class="td-emp">'+fmt(ndd.EMP)+'</td>'
+            +'<td class="td-liq">'+fmt(ndd.LIQ)+'</td><td class="td-pag">'+fmt(ndd.PAG)+'</td>'
+            +'<td>'+fmt(ndd.DISP)+'</td>';
+          tbody.appendChild(trD);
+        }});
       }});
     }});
   }});
 
+  let tLimiteCell='<td class="td-limite">—</td>';
+  if(selNDs.size===0 && tLIMITE){{
+    tLimiteCell='<td class="td-limite">'+fmt(tLIMITE)+'</td>';
+  }}
   const ttr=document.createElement('tr');
   ttr.className='total-row';
   ttr.innerHTML='<td>Total</td>'
+    +tLimiteCell
     +'<td class="td-det">'+fmt(tDET)+'</td><td class="td-emp">'+fmt(tEMP)+'</td>'
     +'<td class="td-liq">'+fmt(tLIQ)+'</td><td class="td-pag">'+fmt(tPAG)+'</td>'
     +'<td>'+fmt(tDET-tLIQ)+'</td>';
